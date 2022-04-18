@@ -18,58 +18,125 @@
 #ifndef itkANTSRegistration_h
 #define itkANTSRegistration_h
 
-#include "itkImageToImageFilter.h"
+#include "itkProcessObject.h"
+#include "itkImage.h"
+#include "itkCompositeTransform.h"
+#include "itkDataObjectDecorator.h"
 
 namespace itk
 {
 
 /** \class ANTSRegistration
  *
- * \brief Filters a image by iterating over its pixels.
- *
- * Filters a image by iterating over its pixels in a multi-threaded way
- * and {to be completed by the developer}.
+ * \brief Image-to-image registration method parameterized according to ANTsR or ANTsPy.
  *
  * \ingroup ANTsWasm
  *
  */
-template <typename TInputImage, typename TOutputImage>
-class ANTSRegistration : public ImageToImageFilter<TInputImage, TOutputImage>
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType = double>
+class ANTSRegistration : public ProcessObject
 {
 public:
   ITK_DISALLOW_COPY_AND_MOVE(ANTSRegistration);
 
-  static constexpr unsigned int InputImageDimension = TInputImage::ImageDimension;
-  static constexpr unsigned int OutputImageDimension = TOutputImage::ImageDimension;
+  static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
-  using InputImageType = TInputImage;
-  using OutputImageType = TOutputImage;
-  using InputPixelType = typename InputImageType::PixelType;
-  using OutputPixelType = typename OutputImageType::PixelType;
+  using FixedImageType = TFixedImage;
+  using MovingImageType = TTMovingImage;
+  using FixedPixelType = typename InputImageType::PixelType;
+  using MovingPixelType = typename OutputImageType::PixelType;
+
+  using ParametersValueType = TParametersValueType;
+  using TransformType = Transform<TParametersValueType, ImageDimension, ImageDimension>;
+  using InitialTransformType = TransformType;
+  using CompositeTransformType = CompositeTransform<ParametersValueType, ImageDimension>;
+  using OutputTransformType = CompositeTransformType;
 
   /** Standard class aliases. */
-  using Self = ANTSRegistration<InputImageType, OutputImageType>;
-  using Superclass = ImageToImageFilter<InputImageType, OutputImageType>;
+  using Self = ANTSRegistration<FixedImageType, MovingImageType>;
+  using Superclass = ProcessObject
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Run-time type information. */
-  itkTypeMacro(ANTSRegistration, ImageToImageFilter);
+  itkTypeMacro(ANTSRegistration, ProcessObject);
 
   /** Standard New macro. */
   itkNewMacro(Self);
+
+  /** Set/get the fixed image. */
+  virtual void SetFixedImage(const FixedImageType * image);
+  virtual const FixedImageType * GetFixedImage() const;
+
+  /** Set/get the fixed image. */
+  virtual void SetMovingImage(const MovingImageType * image);
+  virtual const MovingImageType * GetMovingImage() const;
+
+  /** Set the type of transformation to be optimized. A setting defines
+   * a set of transformation parameterizations that are optimized,
+   * the similarity metric used, and optimization parameters.
+   * 
+   * Supported transformation types are:
+   * 
+   * - "Translation": Translation transformation.
+   * - "Rigid": Rigid transformation: Only rotation and translation.
+   * - "Similarity": Similarity transformation: scaling, rotation and translation.
+   * - "Affine": Affine transformation: Rigid + scaling.
+   * - "AffineFast": Fast version of Affine.
+   * - "SyN": Symmetric normalization: Affine + deformable transformation, with mutual information as optimization metric.
+   * - "SyNCC": SyN, but with cross-correlation as the metric.
+   */
+  itkSetStringMacro(TypeOfTransform);
+  itkGetStringMacro(TypeOfTransform);
+
+  virtual void SetInitialTransform(const InitialTransformType * transform);
+  virtual const InitialTransformType * GetInitialTransform() const;
+
+  /** Returns the transform resulting from the registration process  */
+  virtual OutputTransformType *
+  GetModifiableForwardTransform();
+  virtual const OutputTransformType *
+  GetForwardTransform() const;
+
+  /** Returns the inverse transform resulting from the registration process, if available  */
+  virtual OutputTransformType *
+  GetModifiableInverseTransform();
+  virtual const OutputTransformType *
+  GetInverseTransform() const;
 
 protected:
   ANTSRegistration();
   ~ANTSRegistration() override = default;
 
+  /** Make a DataObject of the correct type to be used as the specified output. */
+  using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
+  using Superclass::MakeOutput;
+  DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
-  using OutputRegionType = typename OutputImageType::RegionType;
-
   void
-  DynamicThreadedGenerateData(const OutputRegionType & outputRegion) override;
+  GenerateData() override;
+
+  virtual void
+  AllocateOutputs();
+
+  // helper function to create the right kind of concrete transform
+  template <typename TTransform>
+  static void
+  MakeOutputTransform(SmartPointer<TTransform> & ptr)
+  {
+    ptr = TTransform::New();
+  }
+
+  static void
+  MakeOutputTransform(SmartPointer<InitialTransformType> & ptr)
+  {
+    ptr = IdentityTransform<RealType, ImageDimension>::New().GetPointer();
+  }
+
+  std::string m_TypeOfTransform{"Affine"};
 
 private:
 #ifdef ITK_USE_CONCEPT_CHECKING
