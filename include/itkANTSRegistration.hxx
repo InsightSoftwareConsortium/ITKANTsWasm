@@ -26,38 +26,117 @@
 namespace itk
 {
 
-template <typename TInputImage, typename TOutputImage>
-ANTSRegistration<TInputImage, TOutputImage>
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 ::ANTSRegistration()
-{}
-
-
-template <typename TInputImage, typename TOutputImage>
-void
-ANTSRegistration<TInputImage, TOutputImage>
-::PrintSelf(std::ostream & os, Indent indent) const
 {
-  Superclass::PrintSelf(os, indent);
+  ProcessObject::SetNumberOfRequiredOutputs(2);
+  ProcessObject::SetNumberOfRequiredInputs(2);
+  ProcessObject::SetNumberOfIndexedInputs(3);
+  ProcessObject::SetNumberOfIndexedOutputs(2);
 }
 
 
-template <typename TInputImage, typename TOutputImage>
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TInputImage, TOutputImage>
-::DynamicThreadedGenerateData(const OutputRegionType & outputRegion)
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::PrintSelf(std::ostream & os, Indent indent) const
 {
-  OutputImageType *      output = this->GetOutput();
-  const InputImageType * input = this->GetInput();
-  using InputRegionType = typename InputImageType::RegionType;
-  InputRegionType inputRegion = InputRegionType(outputRegion.GetSize());
+  Superclass::PrintSelf(os, indent);
+  os << indent << "TypeOfTransform: " << this->m_TypeOfTransform << std::endl;
+}
 
-  itk::ImageRegionConstIterator<InputImageType> in(input, inputRegion);
-  itk::ImageRegionIterator<OutputImageType>     out(output, outputRegion);
 
-  for (in.GoToBegin(), out.GoToBegin(); !in.IsAtEnd() && !out.IsAtEnd(); ++in, ++out)
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::SetFixedImage(const FixedImageType * image)
+{
+  if (image != static_cast<FixedImageType *>(this->ProcessObject::GetInput(0)))
   {
-    out.Set(in.Get());
+    this->ProcessObject::SetNthInput(0, const_cast<FixedImageType *>(image));
+    this->Modified();
   }
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::GetFixedImage() const -> const FixedImageType *
+{
+  return static_cast<const FixedImageType *>(this->ProcessObject::GetInput(0));
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::SetMovingImage(const MovingImageType * image)
+{
+  if (image != static_cast<MovingImageType *>(this->ProcessObject::GetInput(1)))
+  {
+    this->ProcessObject::SetNthInput(1, const_cast<MovingImageType *>(image));
+    this->Modified();
+  }
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::GetMovingImage() const -> const MovingImageType *
+{
+  return static_cast<const MovingImageType *>(this->ProcessObject::GetInput(1));
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::GetOutput(DataObjectPointerArraySizeType index) -> DecoratedOutputTransformType *
+{
+  return static_cast<DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::GetOutput(DataObjectPointerArraySizeType index) const -> const DecoratedOutputTransformType *
+{
+  return static_cast<const DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::AllocateOutputs()
+{
+  DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetOutputForwardTransform();
+  if (!decoratedOutputForwardTransform->Get())
+  {
+    typename OutputTransformType::Pointer ptr;
+    Self::MakeOutputTransform(ptr);
+    decoratedOutputForwardTransform->Set(ptr);
+  }
+
+  DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetOutputInverseTransform();
+  if (!decoratedOutputInverseTransform->Get())
+  {
+    typename OutputTransformType::Pointer ptr;
+    Self::MakeOutputTransform(ptr);
+    decoratedOutputInverseTransform->Set(ptr);
+  }
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
+::GenerateData()
+{
+  this->AllocateOutputs();
+
 }
 
 } // end namespace itk

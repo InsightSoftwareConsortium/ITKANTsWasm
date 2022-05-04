@@ -15,6 +15,7 @@ itk_module(ANTsWasm
   DEPENDS
     ITKCommon
     ITKStatistics
+    ITKTransform
   COMPILE_DEPENDS
     ITKImageSources
   TEST_DEPENDS

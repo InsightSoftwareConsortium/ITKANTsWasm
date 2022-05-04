@@ -42,19 +42,21 @@ public:
   static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
   using FixedImageType = TFixedImage;
-  using MovingImageType = TTMovingImage;
-  using FixedPixelType = typename InputImageType::PixelType;
-  using MovingPixelType = typename OutputImageType::PixelType;
+  using MovingImageType = TMovingImage;
+  using FixedPixelType = typename FixedImageType::PixelType;
+  using MovingPixelType = typename MovingImageType::PixelType;
 
   using ParametersValueType = TParametersValueType;
   using TransformType = Transform<TParametersValueType, ImageDimension, ImageDimension>;
   using InitialTransformType = TransformType;
   using CompositeTransformType = CompositeTransform<ParametersValueType, ImageDimension>;
   using OutputTransformType = CompositeTransformType;
+  using DecoratedInitialTransformType = DataObjectDecorator<InitialTransformType>;
+  using DecoratedOutputTransformType = DataObjectDecorator<OutputTransformType>;
 
   /** Standard class aliases. */
   using Self = ANTSRegistration<FixedImageType, MovingImageType>;
-  using Superclass = ProcessObject
+  using Superclass = ProcessObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
@@ -89,20 +91,19 @@ public:
   itkSetStringMacro(TypeOfTransform);
   itkGetStringMacro(TypeOfTransform);
 
-  virtual void SetInitialTransform(const InitialTransformType * transform);
-  virtual const InitialTransformType * GetInitialTransform() const;
+  /** Set/Get the initial fixed transform. */
+  itkSetGetDecoratedObjectInputMacro(InitialTransform, InitialTransformType);
 
   /** Returns the transform resulting from the registration process  */
-  virtual OutputTransformType *
-  GetModifiableForwardTransform();
-  virtual const OutputTransformType *
-  GetForwardTransform() const;
+  itkSetGetDecoratedObjectInputMacro(ForwardTransform, OutputTransformType);
 
   /** Returns the inverse transform resulting from the registration process, if available  */
-  virtual OutputTransformType *
-  GetModifiableInverseTransform();
-  virtual const OutputTransformType *
-  GetInverseTransform() const;
+  itkSetGetDecoratedObjectInputMacro(InverseTransform, OutputTransformType);
+
+  virtual DecoratedOutputTransformType *
+  GetOutput(DataObjectPointerArraySizeType i);
+  virtual const DecoratedOutputTransformType *
+  GetOutput(DataObjectPointerArraySizeType i) const;
 
 protected:
   ANTSRegistration();
@@ -128,12 +129,6 @@ protected:
   MakeOutputTransform(SmartPointer<TTransform> & ptr)
   {
     ptr = TTransform::New();
-  }
-
-  static void
-  MakeOutputTransform(SmartPointer<InitialTransformType> & ptr)
-  {
-    ptr = IdentityTransform<RealType, ImageDimension>::New().GetPointer();
   }
 
   std::string m_TypeOfTransform{"Affine"};
