@@ -93,6 +93,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(Dat
   return static_cast<DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
 }
 
+
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 auto
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(DataObjectPointerArraySizeType index) const
@@ -101,26 +102,40 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(Dat
   return static_cast<const DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
 }
 
+
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutputs()
 {
-  DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetOutputForwardTransform();
+  const DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetForwardTransformInput();
   if (!decoratedOutputForwardTransform->Get())
   {
     typename OutputTransformType::Pointer ptr;
     Self::MakeOutputTransform(ptr);
-    decoratedOutputForwardTransform->Set(ptr);
+    typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
+    decoratedOutputTransform->Set(ptr);
+    this->SetForwardTransformInput(decoratedOutputTransform);
   }
 
-  DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetOutputInverseTransform();
+  const DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetInverseTransformInput();
   if (!decoratedOutputInverseTransform->Get())
   {
     typename OutputTransformType::Pointer ptr;
     Self::MakeOutputTransform(ptr);
-    decoratedOutputInverseTransform->Set(ptr);
+    typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
+    decoratedOutputTransform->Set(ptr);
+    this->SetInverseTransformInput(decoratedOutputTransform);
   }
 }
+
+
+//template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+//auto
+//ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
+//  -> DataObjectPointer
+//{
+//  return DataObjectPointer();
+//}
 
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>

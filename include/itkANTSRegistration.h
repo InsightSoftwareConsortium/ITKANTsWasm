@@ -117,7 +117,7 @@ protected:
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
-  DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+  // DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;

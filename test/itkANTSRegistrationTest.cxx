@@ -20,6 +20,7 @@
 
 #include "itkCommand.h"
 #include "itkImageFileWriter.h"
+#include "itkImageDuplicator.h"
 #include "itkTestingMacros.h"
 
 namespace
@@ -52,6 +53,20 @@ public:
 };
 } // namespace
 
+
+constexpr unsigned int Dimension = 2;
+using PixelType = float;
+using ImageType = itk::Image<PixelType, Dimension>;
+
+auto setRegionToValue = [](ImageType::Pointer image, ImageType::RegionType region, PixelType value) {
+  itk::ImageRegionIterator<ImageType> imageIterator(image, region);
+  while (!imageIterator.IsAtEnd())
+  {
+    imageIterator.Set(value);
+    ++imageIterator;
+  }
+};
+
 int
 itkANTSRegistrationTest(int argc, char * argv[])
 {
@@ -65,14 +80,11 @@ itkANTSRegistrationTest(int argc, char * argv[])
   }
   const char * outputImageFileName = argv[1];
 
-  constexpr unsigned int Dimension = 2;
-  using PixelType = float;
-  using ImageType = itk::Image<PixelType, Dimension>;
 
   using FilterType = itk::ANTSRegistration<ImageType, ImageType>;
   FilterType::Pointer filter = FilterType::New();
 
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ImageToImageFilter);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
 
   // Create input image to avoid test dependencies.
   ImageType::SizeType size;
@@ -81,19 +93,32 @@ itkANTSRegistrationTest(int argc, char * argv[])
   image->SetRegions(size);
   image->Allocate();
   image->FillBuffer(1.1f);
+  ImageType::RegionType region = image->GetLargestPossibleRegion();
+  region.ShrinkByRadius(20);
+  setRegionToValue(image, region, 0.2f);
+
+  using DuplicatorType = itk::ImageDuplicator<ImageType>;
+  auto duplicator = DuplicatorType::New();
+  duplicator->SetInputImage(image);
+  duplicator->Update();
+  ImageType::Pointer clonedImage = duplicator->GetOutput();
+  region.SetIndex(0, region.GetIndex(0) + 10); // shift the rectangle
+  clonedImage->FillBuffer(0.3f);
+  setRegionToValue(clonedImage, region, 1.2f);
 
   ShowProgress::Pointer showProgress = ShowProgress::New();
   filter->AddObserver(itk::ProgressEvent(), showProgress);
-  filter->SetInput(image);
+  filter->SetFixedImage(image);
+  filter->SetMovingImage(clonedImage);
+  filter->SetTypeOfTransform("Affine");
 
   using WriterType = itk::ImageFileWriter<ImageType>;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName(outputImageFileName);
-  writer->SetInput(filter->GetOutput());
+  writer->SetInput(image);
   writer->SetUseCompression(true);
 
   ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
-
 
   std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
