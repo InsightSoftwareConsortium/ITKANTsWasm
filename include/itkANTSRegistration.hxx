@@ -27,8 +27,7 @@ namespace itk
 {
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::ANTSRegistration()
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistration()
 {
   ProcessObject::SetNumberOfRequiredOutputs(2);
   ProcessObject::SetNumberOfRequiredInputs(2);
@@ -39,8 +38,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::PrintSelf(std::ostream & os, Indent indent) const
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
   os << indent << "TypeOfTransform: " << this->m_TypeOfTransform << std::endl;
@@ -49,8 +47,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::SetFixedImage(const FixedImageType * image)
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetFixedImage(const FixedImageType * image)
 {
   if (image != static_cast<FixedImageType *>(this->ProcessObject::GetInput(0)))
   {
@@ -62,8 +59,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 auto
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::GetFixedImage() const -> const FixedImageType *
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetFixedImage() const -> const FixedImageType *
 {
   return static_cast<const FixedImageType *>(this->ProcessObject::GetInput(0));
 }
@@ -71,8 +67,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::SetMovingImage(const MovingImageType * image)
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetMovingImage(const MovingImageType * image)
 {
   if (image != static_cast<MovingImageType *>(this->ProcessObject::GetInput(1)))
   {
@@ -84,8 +79,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 auto
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::GetMovingImage() const -> const MovingImageType *
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetMovingImage() const -> const MovingImageType *
 {
   return static_cast<const MovingImageType *>(this->ProcessObject::GetInput(1));
 }
@@ -93,24 +87,23 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 auto
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::GetOutput(DataObjectPointerArraySizeType index) -> DecoratedOutputTransformType *
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(DataObjectPointerArraySizeType index)
+  -> DecoratedOutputTransformType *
 {
   return static_cast<DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
 }
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 auto
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::GetOutput(DataObjectPointerArraySizeType index) const -> const DecoratedOutputTransformType *
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(DataObjectPointerArraySizeType index) const
+  -> const DecoratedOutputTransformType *
 {
   return static_cast<const DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
 }
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::AllocateOutputs()
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutputs()
 {
   DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetOutputForwardTransform();
   if (!decoratedOutputForwardTransform->Get())
@@ -132,11 +125,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>
-::GenerateData()
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
 {
   this->AllocateOutputs();
-
 }
 
 } // end namespace itk

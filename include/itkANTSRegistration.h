@@ -67,25 +67,30 @@ public:
   itkNewMacro(Self);
 
   /** Set/get the fixed image. */
-  virtual void SetFixedImage(const FixedImageType * image);
-  virtual const FixedImageType * GetFixedImage() const;
+  virtual void
+  SetFixedImage(const FixedImageType * image);
+  virtual const FixedImageType *
+  GetFixedImage() const;
 
   /** Set/get the fixed image. */
-  virtual void SetMovingImage(const MovingImageType * image);
-  virtual const MovingImageType * GetMovingImage() const;
+  virtual void
+  SetMovingImage(const MovingImageType * image);
+  virtual const MovingImageType *
+  GetMovingImage() const;
 
   /** Set the type of transformation to be optimized. A setting defines
    * a set of transformation parameterizations that are optimized,
    * the similarity metric used, and optimization parameters.
-   * 
+   *
    * Supported transformation types are:
-   * 
+   *
    * - "Translation": Translation transformation.
    * - "Rigid": Rigid transformation: Only rotation and translation.
    * - "Similarity": Similarity transformation: scaling, rotation and translation.
    * - "Affine": Affine transformation: Rigid + scaling.
    * - "AffineFast": Fast version of Affine.
-   * - "SyN": Symmetric normalization: Affine + deformable transformation, with mutual information as optimization metric.
+   * - "SyN": Symmetric normalization: Affine + deformable transformation, with mutual information as optimization
+   * metric.
    * - "SyNCC": SyN, but with cross-correlation as the metric.
    */
   itkSetStringMacro(TypeOfTransform);
@@ -131,7 +136,7 @@ protected:
     ptr = TTransform::New();
   }
 
-  std::string m_TypeOfTransform{"Affine"};
+  std::string m_TypeOfTransform{ "Affine" };
 
 private:
 #ifdef ITK_USE_CONCEPT_CHECKING
