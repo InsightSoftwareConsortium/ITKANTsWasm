@@ -14,9 +14,13 @@ file(READ "${MY_CURRENT_DIR}/README.rst" DOCUMENTATION)
 itk_module(ANTsWasm
   DEPENDS
     ITKCommon
-    ITKStatistics
     ITKTransform
     ITKRegistrationMethodsv4  # ImageRegistrationMethodv4 wraps DataObjectDecorator<CompositeTransform>
+    ITKIOImageBase
+    ITKImageLabel
+    ITKBinaryMathematicalMorphology
+    ITKTransformFactory
+    ITKIOTransformBase
   COMPILE_DEPENDS
     ITKImageSources
   TEST_DEPENDS
