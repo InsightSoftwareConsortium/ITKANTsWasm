@@ -16,6 +16,7 @@ itk_module(ANTsWasm
     ITKCommon
     ITKStatistics
     ITKTransform
+    ITKRegistrationMethodsv4  # ImageRegistrationMethodv4 wraps DataObjectDecorator<CompositeTransform>
   COMPILE_DEPENDS
     ITKImageSources
   TEST_DEPENDS
