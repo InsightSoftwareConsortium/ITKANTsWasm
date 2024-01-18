@@ -22,6 +22,7 @@
 #include "itkImage.h"
 #include "itkCompositeTransform.h"
 #include "itkDataObjectDecorator.h"
+#include "itkantsRegistrationHelper.h"
 
 namespace itk
 {
@@ -118,6 +119,7 @@ protected:
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   // DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+  using ANTsRegistrationHelper = ::ants::RegistrationHelper<float, FixedImageType::ImageDimension>;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -137,6 +139,8 @@ protected:
   }
 
   std::string m_TypeOfTransform{ "Affine" };
+
+  typename ANTsRegistrationHelper::Pointer m_Helper{ ANTsRegistrationHelper::New() };
 
 private:
 #ifdef ITK_USE_CONCEPT_CHECKING
