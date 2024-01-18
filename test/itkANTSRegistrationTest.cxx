@@ -111,6 +111,9 @@ itkANTSRegistrationTest(int argc, char * argv[])
   filter->SetFixedImage(image);
   filter->SetMovingImage(clonedImage);
   filter->SetTypeOfTransform("Affine");
+  filter->Update();
+  auto filterOutput = filter->GetForwardTransform();
+  std::cout << "\nForwardTransform: " << filterOutput << std::endl;
 
   using WriterType = itk::ImageFileWriter<ImageType>;
   WriterType::Pointer writer = WriterType::New();

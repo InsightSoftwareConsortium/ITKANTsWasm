@@ -119,7 +119,12 @@ protected:
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
   // DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
-  using ANTsRegistrationHelper = ::ants::RegistrationHelper<float, FixedImageType::ImageDimension>;
+  using RegistrationHelperType = ::ants::RegistrationHelper<TParametersValueType, FixedImageType::ImageDimension>;
+  using InternalImageType = typename RegistrationHelperType::ImageType; // float or double pixels
+
+  template<typename TImage>
+  typename InternalImageType::Pointer
+  CastImageToInternalType(const TImage *);
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -140,7 +145,7 @@ protected:
 
   std::string m_TypeOfTransform{ "Affine" };
 
-  typename ANTsRegistrationHelper::Pointer m_Helper{ ANTsRegistrationHelper::New() };
+  typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
 
 private:
 #ifdef ITK_USE_CONCEPT_CHECKING

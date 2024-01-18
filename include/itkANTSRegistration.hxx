@@ -20,8 +20,7 @@
 
 #include "itkANTSRegistration.h"
 
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
+#include "itkCastImageFilter.h"
 
 namespace itk
 {
@@ -129,20 +128,106 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutpu
 }
 
 
-//template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
-//auto
-//ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
-//  -> DataObjectPointer
+// template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+// auto
+// ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
+//   -> DataObjectPointer
 //{
-//  return DataObjectPointer();
-//}
+//   return DataObjectPointer();
+// }
 
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+template <typename TImage>
+auto
+itk::ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImageToInternalType(
+  const TImage * inputImage) -> typename InternalImageType::Pointer
+{
+  using CastFilterType = CastImageFilter<TImage, InternalImageType>;
+  typename CastFilterType::Pointer castFilter = CastFilterType::New();
+  castFilter->SetInput(inputImage);
+  castFilter->Update();
+  typename InternalImageType::Pointer outputImage = castFilter->GetOutput();
+  outputImage->DisconnectPipeline();
+  return outputImage;
+}
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
 {
-  this->AllocateOutputs();
+  // this->AllocateOutputs();
+
+  std::string whichTransform = this->GetTypeOfTransform();
+  std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
+  typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
+
+  double learningRate = 0.2; // TODO: Make this a parameter
+
+  switch (xfrmMethod)
+  {
+    case RegistrationHelperType::Affine: {
+      m_Helper->AddAffineTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::Rigid: {
+      m_Helper->AddRigidTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::CompositeAffine: {
+      m_Helper->AddCompositeAffineTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::Similarity: {
+      m_Helper->AddSimilarityTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::Translation: {
+      m_Helper->AddTranslationTransform(learningRate);
+    }
+    break;
+    default:
+      itkExceptionMacro(<< "Unsupported transform type: " << whichTransform);
+  }
+
+  typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType("mi");
+
+  // assign default image metric variables
+  typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
+  int                                               numberOfBins = 32;
+  unsigned int                                      radius = 4;
+  bool                                              useGradientFilter = false;
+
+  typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
+  typename InternalImageType::Pointer movigImage = this->CastImageToInternalType(this->GetMovingImage());
+
+  m_Helper->AddMetric(currentMetric,
+                      fixedImage,
+                      movigImage,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      0u,
+                      1.0,
+                      samplingStrategy,
+                      numberOfBins,
+                      radius,
+                      useGradientFilter,
+                      false,
+                      1.0,
+                      50u,
+                      1.1,
+                      false,
+                      0.1,
+                      std::sqrt(5),
+                      std::sqrt(5));
+
+  m_Helper->DoRegistration();
+
+  typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
+  decoratedOutputTransform->Set(m_Helper->GetModifiableCompositeTransform());
+  this->SetForwardTransformInput(decoratedOutputTransform);
 }
 
 } // end namespace itk
