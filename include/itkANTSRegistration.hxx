@@ -20,6 +20,8 @@
 
 #include "itkANTSRegistration.h"
 
+#include <sstream>
+
 #include "itkCastImageFilter.h"
 
 namespace itk
@@ -166,6 +168,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 {
   // this->AllocateOutputs();
 
+  std::stringstream ss;
+  m_Helper->SetLogStream(ss);
+
   std::string whichTransform = this->GetTypeOfTransform();
   std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
   typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
@@ -231,7 +236,11 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       std::sqrt(5),
                       std::sqrt(5));
 
-  m_Helper->DoRegistration();
+  int retVal = m_Helper->DoRegistration();
+  if (retVal != EXIT_SUCCESS)
+  {
+    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
+  }
 
   typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
   decoratedOutputTransform->Set(m_Helper->GetModifiableCompositeTransform());
