@@ -203,6 +203,15 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
       itkExceptionMacro(<< "Unsupported transform type: " << whichTransform);
   }
 
+  // set the vector-vector parameters
+  m_Helper->SetIterations({ { 2100, 1200, 1200, 10 } });
+  m_Helper->SetRestrictDeformationOptimizerWeights({ { 1.0, 1.0, 1.0, 1.0 } });
+  m_Helper->SetConvergenceWindowSizes({ { 10, 10, 10, 10 } });
+  m_Helper->SetConvergenceThresholds({ { 1e-6, 1e-6, 1e-6, 1e-6 } });
+  m_Helper->SetSmoothingSigmas({ { 3.0, 2.0, 1.0, 0.0 } });
+  m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ true });
+  m_Helper->SetShrinkFactors({ { 6, 4, 2, 1 } });
+
   typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType("mi");
 
   // assign default image metric variables
@@ -232,7 +241,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       50u,
                       1.1,
                       false,
-                      0.1,
+                      0.2,
                       std::sqrt(5),
                       std::sqrt(5));
 
