@@ -32,6 +32,14 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistrat
   ProcessObject::SetNumberOfRequiredInputs(2);
   ProcessObject::SetNumberOfIndexedInputs(3);
   ProcessObject::SetNumberOfIndexedOutputs(2);
+
+  typename OutputTransformType::Pointer ptr;
+  Self::MakeOutputTransform(ptr);
+  typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
+  decoratedOutputTransform->Set(ptr);
+  this->ProcessObject::SetNthOutput(0, decoratedOutputTransform);
+
+  // this->SetForwardTransformInput(decoratedOutputTransform);
 }
 
 
