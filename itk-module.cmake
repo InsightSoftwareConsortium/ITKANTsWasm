@@ -21,11 +21,12 @@ itk_module(ANTsWasm
     ITKBinaryMathematicalMorphology
     ITKTransformFactory
     ITKIOTransformBase
-  COMPILE_DEPENDS
-    ITKImageSources
   TEST_DEPENDS
     ITKTestKernel
     ITKMetaIO
+    ITKIONIFTI
+    ITKIOTransformMatlab
+    ITKIOTransformInsightLegacy
   DESCRIPTION
     "${DOCUMENTATION}"
   EXCLUDE_FROM_DEFAULT

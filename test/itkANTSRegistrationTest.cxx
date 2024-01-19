@@ -21,6 +21,8 @@
 #include "itkCommand.h"
 #include "itkImageFileWriter.h"
 #include "itkImageDuplicator.h"
+#include "itkMatlabTransformIOFactory.h"
+#include "itkTxtTransformIOFactory.h"
 #include "itkTestingMacros.h"
 
 namespace
@@ -51,78 +53,81 @@ public:
     std::cout << " " << processObject->GetProgress();
   }
 };
+
+template <unsigned Dimension>
+int
+doTest(int argc, char * argv[])
+{
+  const char * fixedImageFileName = argv[1];
+  const char * movingImageFileName = argv[2];
+  const char * outTransformFileName = argv[3];
+
+  itk::MatlabTransformIOFactory::RegisterOneFactory();
+  itk::TxtTransformIOFactory::RegisterOneFactory();
+
+  using ImageType = itk::Image<float, Dimension>;
+  using FilterType = itk::ANTSRegistration<ImageType, ImageType>;
+  FilterType::Pointer filter = FilterType::New();
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
+
+  typename ImageType::Pointer fixedImage;
+  ITK_TRY_EXPECT_NO_EXCEPTION(fixedImage = itk::ReadImage<ImageType>(fixedImageFileName));
+
+  typename ImageType::Pointer movingImage;
+  ITK_TRY_EXPECT_NO_EXCEPTION(movingImage = itk::ReadImage<ImageType>(movingImageFileName));
+
+  ShowProgress::Pointer showProgress = ShowProgress::New();
+  filter->AddObserver(itk::ProgressEvent(), showProgress);
+  filter->SetFixedImage(fixedImage);
+  filter->SetMovingImage(movingImage);
+  filter->SetTypeOfTransform("Affine");
+  ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
+
+  // debug
+  auto filterOutput = filter->GetForwardTransform();
+  std::cout << "\nForwardTransform: " << *filterOutput << std::endl;
+
+  itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
+  transformWriter->SetInput(filterOutput);
+  transformWriter->SetFileName(outTransformFileName);
+  ITK_TRY_EXPECT_NO_EXCEPTION(transformWriter->Update());
+
+  std::cout << "Test finished." << std::endl;
+  return EXIT_SUCCESS;
+}
+
 } // namespace
 
-
-constexpr unsigned int Dimension = 2;
-using PixelType = float;
-using ImageType = itk::Image<PixelType, Dimension>;
-
-auto setRegionToValue = [](ImageType::Pointer image, ImageType::RegionType region, PixelType value) {
-  itk::ImageRegionIterator<ImageType> imageIterator(image, region);
-  while (!imageIterator.IsAtEnd())
-  {
-    imageIterator.Set(value);
-    ++imageIterator;
-  }
-};
 
 int
 itkANTSRegistrationTest(int argc, char * argv[])
 {
-  if (argc < 2)
+  if (argc < 4)
   {
     std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
-    std::cerr << " outputImage";
+    std::cerr << " fixedImage movingImage outTransform [movingInFixedSpace] [initialTransform]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
-  const char * outputImageFileName = argv[1];
 
+  // determine dimension
+  using ImageType = itk::Image<unsigned char, 2>;
+  auto imageReader = itk::ImageFileReader<ImageType>::New();
+  imageReader->SetFileName(argv[1]);
+  ITK_TRY_EXPECT_NO_EXCEPTION(imageReader->UpdateOutputInformation());
+  unsigned dimension = imageReader->GetImageIO()->GetNumberOfDimensions();
 
-  using FilterType = itk::ANTSRegistration<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
-
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
-
-  // Create input image to avoid test dependencies.
-  ImageType::SizeType size;
-  size.Fill(128);
-  ImageType::Pointer image = ImageType::New();
-  image->SetRegions(size);
-  image->Allocate();
-  image->FillBuffer(1.1f);
-  ImageType::RegionType region = image->GetLargestPossibleRegion();
-  region.ShrinkByRadius(20);
-  setRegionToValue(image, region, 0.2f);
-
-  using DuplicatorType = itk::ImageDuplicator<ImageType>;
-  auto duplicator = DuplicatorType::New();
-  duplicator->SetInputImage(image);
-  duplicator->Update();
-  ImageType::Pointer clonedImage = duplicator->GetOutput();
-  region.SetIndex(0, region.GetIndex(0) + 10); // shift the rectangle
-  clonedImage->FillBuffer(0.3f);
-  setRegionToValue(clonedImage, region, 1.2f);
-
-  ShowProgress::Pointer showProgress = ShowProgress::New();
-  filter->AddObserver(itk::ProgressEvent(), showProgress);
-  filter->SetFixedImage(image);
-  filter->SetMovingImage(clonedImage);
-  filter->SetTypeOfTransform("Affine");
-  filter->Update();
-  auto filterOutput = filter->GetForwardTransform();
-  std::cout << "\nForwardTransform: " << *filterOutput << std::endl;
-
-  using WriterType = itk::ImageFileWriter<ImageType>;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName(outputImageFileName);
-  writer->SetInput(image);
-  writer->SetUseCompression(true);
-
-  ITK_TRY_EXPECT_NO_EXCEPTION(writer->Update());
-
-  std::cout << "Test finished." << std::endl;
-  return EXIT_SUCCESS;
+  switch (dimension)
+  {
+    case 2:
+      return doTest<2>(argc, argv);
+    case 3:
+      return doTest<3>(argc, argv);
+    case 4:
+      return doTest<4>(argc, argv);
+    default:
+      std::cerr << "Unsupported image dimension: " << dimension;
+      return EXIT_FAILURE;
+  }
 }
