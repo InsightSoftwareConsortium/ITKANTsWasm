@@ -2,9 +2,16 @@ itk_module_test()
 
 set(ANTsWasmTests
   itkANTSRegistrationTest.cxx
+  itkANTSRegistrationBasicTests.cxx
   )
 
 CreateTestDriver(ANTsWasm "${ANTsWasm-Test_LIBRARIES}" "${ANTsWasmTests}")
+
+
+itk_add_test(NAME itkANTSRegistrationBasicTests
+  COMMAND ANTsWasmTestDriver
+  itkANTSRegistrationBasicTests  # parameterless test
+  )
 
 itk_add_test(NAME itkANTSRegistrationTest
   COMMAND ANTsWasmTestDriver

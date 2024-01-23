@@ -203,6 +203,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 {
   // this->AllocateOutputs();
 
+  this->UpdateProgress(0.01);
   std::stringstream ss;
   m_Helper->SetLogStream(ss);
 
@@ -257,6 +258,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 
   typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
   typename InternalImageType::Pointer movigImage = this->CastImageToInternalType(this->GetMovingImage());
+  this->UpdateProgress(0.1);
 
   m_Helper->AddMetric(currentMetric,
                       fixedImage,
@@ -281,6 +283,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       std::sqrt(5));
 
   int retVal = m_Helper->DoRegistration();
+  this->UpdateProgress(0.95);
   if (retVal != EXIT_SUCCESS)
   {
     itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
@@ -289,6 +292,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
   decoratedOutputTransform->Set(m_Helper->GetModifiableCompositeTransform());
   this->SetForwardTransformInput(decoratedOutputTransform);
+  this->UpdateProgress(1.0);
 }
 
 } // end namespace itk

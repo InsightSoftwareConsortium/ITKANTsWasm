@@ -18,42 +18,13 @@
 
 #include "itkANTSRegistration.h"
 
-#include "itkCommand.h"
 #include "itkImageFileWriter.h"
-#include "itkImageDuplicator.h"
 #include "itkMatlabTransformIOFactory.h"
 #include "itkTxtTransformIOFactory.h"
 #include "itkTestingMacros.h"
 
 namespace
 {
-class ShowProgress : public itk::Command
-{
-public:
-  itkNewMacro(ShowProgress);
-
-  void
-  Execute(itk::Object * caller, const itk::EventObject & event) override
-  {
-    Execute((const itk::Object *)caller, event);
-  }
-
-  void
-  Execute(const itk::Object * caller, const itk::EventObject & event) override
-  {
-    if (!itk::ProgressEvent().CheckEvent(&event))
-    {
-      return;
-    }
-    const auto * processObject = dynamic_cast<const itk::ProcessObject *>(caller);
-    if (!processObject)
-    {
-      return;
-    }
-    std::cout << " " << processObject->GetProgress();
-  }
-};
-
 template <unsigned Dimension>
 int
 doTest(int argc, char * argv[])
@@ -67,8 +38,7 @@ doTest(int argc, char * argv[])
 
   using ImageType = itk::Image<float, Dimension>;
   using FilterType = itk::ANTSRegistration<ImageType, ImageType>;
-  FilterType::Pointer filter = FilterType::New();
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
+  typename FilterType::Pointer filter = FilterType::New();
 
   typename ImageType::Pointer fixedImage;
   ITK_TRY_EXPECT_NO_EXCEPTION(fixedImage = itk::ReadImage<ImageType>(fixedImageFileName));
@@ -76,8 +46,6 @@ doTest(int argc, char * argv[])
   typename ImageType::Pointer movingImage;
   ITK_TRY_EXPECT_NO_EXCEPTION(movingImage = itk::ReadImage<ImageType>(movingImageFileName));
 
-  ShowProgress::Pointer showProgress = ShowProgress::New();
-  filter->AddObserver(itk::ProgressEvent(), showProgress);
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
   filter->SetTypeOfTransform("Affine");
