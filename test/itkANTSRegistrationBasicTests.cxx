@@ -27,7 +27,8 @@
 namespace
 {
 template <typename TImage>
-void setRegionToValue(TImage * image, const typename TImage::RegionType region, typename TImage::PixelType value)
+void
+setRegionToValue(TImage * image, const typename TImage::RegionType region, typename TImage::PixelType value)
 {
   itk::ImageRegionIterator<TImage> imageIterator(image, region);
   while (!imageIterator.IsAtEnd())
@@ -48,10 +49,13 @@ testFilter()
   // Create input images to avoid test dependencies.
   typename FixedImageType::SizeType size;
   size.Fill(128);
+  itk::Point<double, 2> origin{ { 10.0, -5.0 } };
+
   typename FixedImageType::Pointer fixedImage = FixedImageType::New();
   fixedImage->SetRegions(size);
   fixedImage->Allocate();
   fixedImage->FillBuffer(11.1f);
+  fixedImage->SetOrigin(origin);
   typename FixedImageType::RegionType region = fixedImage->GetLargestPossibleRegion();
   region.ShrinkByRadius(20);
   setRegionToValue(fixedImage.GetPointer(), region, 22.2f);
@@ -60,6 +64,8 @@ testFilter()
   movingImage->SetRegions(size);
   movingImage->Allocate();
   movingImage->FillBuffer(44);
+  origin[0] = 5;
+  movingImage->SetOrigin(origin);
   region.SetIndex(0, region.GetIndex(0) + 10); // shift the rectangle
   setRegionToValue(movingImage.GetPointer(), region, 55);
 
@@ -70,14 +76,14 @@ testFilter()
   filter->SetTypeOfTransform("Affine");
   filter->Update();
 
-  auto filterOutput = filter->GetForwardTransform();
-  std::cout << *filterOutput << std::endl;
+  auto forwardTransform = filter->GetForwardTransform();
+  std::cout << "forwardTransform: " << *forwardTransform << std::endl;
   typename MovingImageType::Pointer movingResampled = filter->GetWarpedMovingImage();
-  std::cout << *movingResampled << std::endl;
+  std::cout << "movingResampled: " << *movingResampled << std::endl;
   auto inverseTransform = filter->GetInverseTransform(); // Affine should be invertible
-  std::cout << *inverseTransform << std::endl;
+  std::cout << "inverseTransform: " << *inverseTransform << std::endl;
   typename FixedImageType::Pointer fixedResampled = filter->GetWarpedFixedImage();
-  std::cout << *fixedResampled << std::endl;
+  std::cout << "fixedResampled: " << *fixedResampled << std::endl;
 
   return EXIT_SUCCESS;
 }

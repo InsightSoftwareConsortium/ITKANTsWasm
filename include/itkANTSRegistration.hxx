@@ -207,6 +207,16 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   std::stringstream ss;
   m_Helper->SetLogStream(ss);
 
+  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
+  if (decoratedInitialTransform != nullptr)
+  {
+    const InitialTransformType * initialTransform = decoratedInitialTransform->Get();
+    if (initialTransform != nullptr)
+    {
+      m_Helper->SetMovingInitialTransform(initialTransform);
+    }
+  }
+
   std::string whichTransform = this->GetTypeOfTransform();
   std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
   typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);

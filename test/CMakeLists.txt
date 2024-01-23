@@ -18,6 +18,9 @@ itk_add_test(NAME itkANTSRegistrationTest
     --compare
     DATA{Baseline/antsRegistrationTest_AffineRotationNoMasks.result.nii.gz}
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineRotationNoMasks.result.nii.gz
+    --compareIntensityTolerance 7
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 777
   itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image

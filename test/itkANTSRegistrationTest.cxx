@@ -46,6 +46,36 @@ doTest(int argc, char * argv[])
   typename ImageType::Pointer movingImage;
   ITK_TRY_EXPECT_NO_EXCEPTION(movingImage = itk::ReadImage<ImageType>(movingImageFileName));
 
+  if (argc > 5)
+  {
+    itk::TransformFileReader::Pointer transformReader = itk::TransformFileReader::New();
+    transformReader->SetFileName(argv[5]);
+    ITK_TRY_EXPECT_NO_EXCEPTION(transformReader->Update());
+    const itk::TransformFileReader::TransformListType * initialTransformList = transformReader->GetTransformList();
+    ITK_TEST_EXPECT_EQUAL(initialTransformList->size(), 1);
+
+    auto firstTransform = initialTransformList->begin();
+    if (!strcmp((*firstTransform)->GetNameOfClass(), "CompositeTransform"))
+    {
+      using CompositeType = itk::CompositeTransform<double, Dimension>;
+      typename CompositeType::Pointer compositeRead = static_cast<CompositeType *>((*firstTransform).GetPointer());
+      compositeRead->Print(std::cout);
+      filter->SetInitialTransform(compositeRead);
+    }
+    else if (!strcmp((*firstTransform)->GetNameOfClass(), "AffineTransform"))
+    {
+      using AffineType = itk::AffineTransform<double, Dimension>;
+      typename AffineType::Pointer affineRead = static_cast<AffineType *>((*firstTransform).GetPointer());
+      affineRead->Print(std::cout);
+      filter->SetInitialTransform(affineRead);
+    }
+    else
+    {
+      std::cout << "Unsupported initial transform type: " << (*firstTransform)->GetNameOfClass() << std::endl;
+      return EXIT_FAILURE;
+    }
+  }
+
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
   filter->SetTypeOfTransform("Affine");
