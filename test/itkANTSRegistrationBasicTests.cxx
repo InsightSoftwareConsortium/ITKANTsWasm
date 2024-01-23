@@ -74,8 +74,10 @@ testFilter()
   std::cout << *filterOutput << std::endl;
   typename MovingImageType::Pointer movingResampled = filter->GetWarpedMovingImage();
   std::cout << *movingResampled << std::endl;
-  // auto inverseTransform = filter->GetInverseTransform(); // Affine should be invertible
-  // typename FixedImageType::Pointer  fixedResampled = filter->GetWarpedFixedImage();
+  auto inverseTransform = filter->GetInverseTransform(); // Affine should be invertible
+  std::cout << *inverseTransform << std::endl;
+  typename FixedImageType::Pointer fixedResampled = filter->GetWarpedFixedImage();
+  std::cout << *fixedResampled << std::endl;
 
   return EXIT_SUCCESS;
 }

@@ -152,7 +152,7 @@ void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutputs()
 {
   const DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetForwardTransformInput();
-  if (!decoratedOutputForwardTransform->Get())
+  if (!decoratedOutputForwardTransform || !decoratedOutputForwardTransform->Get())
   {
     typename OutputTransformType::Pointer ptr;
     Self::MakeOutputTransform(ptr);
@@ -162,7 +162,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutpu
   }
 
   const DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetInverseTransformInput();
-  if (!decoratedOutputInverseTransform->Get())
+  if (!decoratedOutputInverseTransform || !decoratedOutputInverseTransform->Get())
   {
     typename OutputTransformType::Pointer ptr;
     Self::MakeOutputTransform(ptr);
@@ -201,7 +201,7 @@ template <typename TFixedImage, typename TMovingImage, typename TParametersValue
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
 {
-  // this->AllocateOutputs();
+  this->AllocateOutputs();
 
   this->UpdateProgress(0.01);
   std::stringstream ss;
@@ -289,9 +289,19 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
   }
 
-  typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
-  decoratedOutputTransform->Set(m_Helper->GetModifiableCompositeTransform());
-  this->SetForwardTransformInput(decoratedOutputTransform);
+  typename OutputTransformType::Pointer          forwardTransform = m_Helper->GetModifiableCompositeTransform();
+  typename DecoratedOutputTransformType::Pointer decoratedForwardTransform = DecoratedOutputTransformType::New();
+  decoratedForwardTransform->Set(forwardTransform);
+  this->SetForwardTransformInput(decoratedForwardTransform);
+
+  typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
+  if (forwardTransform->GetInverse(inverseTransform))
+  {
+    typename DecoratedOutputTransformType::Pointer decoratedInverseTransform = DecoratedOutputTransformType::New();
+    decoratedInverseTransform->Set(m_Helper->GetModifiableCompositeTransform());
+    this->SetInverseTransformInput(decoratedInverseTransform);
+  }
+
   this->UpdateProgress(1.0);
 }
 

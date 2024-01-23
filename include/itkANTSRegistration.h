@@ -156,9 +156,9 @@ protected:
 
   std::string m_TypeOfTransform{ "Affine" };
 
+private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
 
-private:
 #ifdef ITK_USE_CONCEPT_CHECKING
   // Add concept checking such as
   // itkConceptMacro( FloatingPointPixel, ( itk::Concept::IsFloatingPoint< typename InputImageType::PixelType > ) );
