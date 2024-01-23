@@ -79,6 +79,17 @@ public:
   virtual const MovingImageType *
   GetMovingImage() const;
 
+  /** Get the moving image resampled onto fixed image grid.
+   * Available after a call to Update(). Computationally expensive. */
+  virtual typename MovingImageType::Pointer
+  GetWarpedMovingImage() const;
+
+  /** Get the fixed image resampled onto moving image grid.
+   * Not available before a call to Update(). Computationally expensive.
+   * This method raises an exception if inverse transform is not available. */
+  virtual typename FixedImageType::Pointer
+  GetWarpedFixedImage() const;
+
   /** Set the type of transformation to be optimized. A setting defines
    * a set of transformation parameterizations that are optimized,
    * the similarity metric used, and optimization parameters.

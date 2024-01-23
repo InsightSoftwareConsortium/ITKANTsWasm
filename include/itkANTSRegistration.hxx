@@ -23,6 +23,7 @@
 #include <sstream>
 
 #include "itkCastImageFilter.h"
+#include "itkResampleImageFilter.h"
 
 namespace itk
 {
@@ -91,6 +92,40 @@ auto
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetMovingImage() const -> const MovingImageType *
 {
   return static_cast<const MovingImageType *>(this->ProcessObject::GetInput(1));
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedMovingImage() const ->
+  typename MovingImageType::Pointer
+{
+  using ResampleFilterType = ResampleImageFilter<MovingImageType, MovingImageType>;
+  typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+  resampleFilter->SetInput(this->GetMovingImage());
+  resampleFilter->SetTransform(this->GetForwardTransform());
+  resampleFilter->SetSize(this->GetFixedImage()->GetLargestPossibleRegion().GetSize());
+  resampleFilter->SetOutputOrigin(this->GetFixedImage()->GetOrigin());
+  resampleFilter->SetOutputSpacing(this->GetFixedImage()->GetSpacing());
+  resampleFilter->SetOutputDirection(this->GetFixedImage()->GetDirection());
+  resampleFilter->Update();
+  return resampleFilter->GetOutput();
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedFixedImage() const ->
+  typename FixedImageType::Pointer
+{
+  using ResampleFilterType = ResampleImageFilter<FixedImageType, FixedImageType>;
+  typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+  resampleFilter->SetInput(this->GetFixedImage());
+  resampleFilter->SetTransform(this->GetInverseTransform());
+  resampleFilter->SetSize(this->GetMovingImage()->GetLargestPossibleRegion().GetSize());
+  resampleFilter->SetOutputOrigin(this->GetMovingImage()->GetOrigin());
+  resampleFilter->SetOutputSpacing(this->GetMovingImage()->GetSpacing());
+  resampleFilter->SetOutputDirection(this->GetMovingImage()->GetDirection());
+  resampleFilter->Update();
+  return resampleFilter->GetOutput();
 }
 
 

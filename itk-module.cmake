@@ -21,6 +21,7 @@ itk_module(ANTsWasm
     ITKBinaryMathematicalMorphology
     ITKTransformFactory
     ITKIOTransformBase
+    ITKImageGrid
   TEST_DEPENDS
     ITKTestKernel
     ITKMetaIO

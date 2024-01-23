@@ -92,6 +92,11 @@ doTest(int argc, char * argv[])
   transformWriter->SetFileName(outTransformFileName);
   ITK_TRY_EXPECT_NO_EXCEPTION(transformWriter->Update());
 
+  if (argc > 4)
+  {
+    ITK_TRY_EXPECT_NO_EXCEPTION(itk::WriteImage(filter->GetWarpedMovingImage(), argv[4]));
+  }
+
   std::cout << "Test finished." << std::endl;
   return EXIT_SUCCESS;
 }
