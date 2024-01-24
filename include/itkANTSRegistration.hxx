@@ -308,7 +308,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   if (forwardTransform->GetInverse(inverseTransform))
   {
     typename DecoratedOutputTransformType::Pointer decoratedInverseTransform = DecoratedOutputTransformType::New();
-    decoratedInverseTransform->Set(m_Helper->GetModifiableCompositeTransform());
+    decoratedInverseTransform->Set(inverseTransform);
     this->SetInverseTransformInput(decoratedInverseTransform);
   }
 
