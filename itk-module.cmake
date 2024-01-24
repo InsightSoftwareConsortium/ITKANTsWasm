@@ -21,6 +21,7 @@ itk_module(ANTsWasm
     ITKIONIFTI
     ITKIOTransformMatlab
     ITKIOTransformInsightLegacy
+    ITKDistanceMap
   DESCRIPTION
     "${DOCUMENTATION}"
   EXCLUDE_FROM_DEFAULT

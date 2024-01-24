@@ -10,7 +10,7 @@ CreateTestDriver(ANTsWasm "${ANTsWasm-Test_LIBRARIES}" "${ANTsWasmTests}")
 
 itk_add_test(NAME itkANTSRegistrationBasicTests
   COMMAND ANTsWasmTestDriver
-  itkANTSRegistrationBasicTests  # parameterless test
+  itkANTSRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
   )
 
 itk_add_test(NAME itkANTSRegistrationTest
