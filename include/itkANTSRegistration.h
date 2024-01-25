@@ -108,7 +108,9 @@ public:
   itkSetStringMacro(TypeOfTransform);
   itkGetStringMacro(TypeOfTransform);
 
-  /** Set/Get the initial transform. */
+  /** Set/Get the initial transform.
+   * It transforms points from the fixed image to the moving image reference frame.
+   * It is typically used to resample the moving image onto the fixed image grid. */
   itkSetGetDecoratedObjectInputMacro(InitialTransform, InitialTransformType);
 
   /** Returns the transform resulting from the registration process  */
