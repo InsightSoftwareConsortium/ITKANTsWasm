@@ -22,6 +22,7 @@
 #include "itkImage.h"
 #include "itkCompositeTransform.h"
 #include "itkDataObjectDecorator.h"
+#include "itkantsRegistrationHelper.h"
 
 namespace itk
 {
@@ -78,6 +79,17 @@ public:
   virtual const MovingImageType *
   GetMovingImage() const;
 
+  /** Get the moving image resampled onto fixed image grid.
+   * Available after a call to Update(). Computationally expensive. */
+  virtual typename MovingImageType::Pointer
+  GetWarpedMovingImage() const;
+
+  /** Get the fixed image resampled onto moving image grid.
+   * Not available before a call to Update(). Computationally expensive.
+   * This method raises an exception if inverse transform is not available. */
+  virtual typename FixedImageType::Pointer
+  GetWarpedFixedImage() const;
+
   /** Set the type of transformation to be optimized. A setting defines
    * a set of transformation parameterizations that are optimized,
    * the similarity metric used, and optimization parameters.
@@ -117,7 +129,13 @@ protected:
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
-  // DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+  DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+  using RegistrationHelperType = ::ants::RegistrationHelper<TParametersValueType, FixedImageType::ImageDimension>;
+  using InternalImageType = typename RegistrationHelperType::ImageType; // float or double pixels
+
+  template<typename TImage>
+  typename InternalImageType::Pointer
+  CastImageToInternalType(const TImage *);
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -139,6 +157,8 @@ protected:
   std::string m_TypeOfTransform{ "Affine" };
 
 private:
+  typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   // Add concept checking such as
   // itkConceptMacro( FloatingPointPixel, ( itk::Concept::IsFloatingPoint< typename InputImageType::PixelType > ) );

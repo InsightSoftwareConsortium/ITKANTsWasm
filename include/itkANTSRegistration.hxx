@@ -20,8 +20,10 @@
 
 #include "itkANTSRegistration.h"
 
-#include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
+#include <sstream>
+
+#include "itkCastImageFilter.h"
+#include "itkResampleImageFilter.h"
 
 namespace itk
 {
@@ -33,6 +35,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistrat
   ProcessObject::SetNumberOfRequiredInputs(2);
   ProcessObject::SetNumberOfIndexedInputs(3);
   ProcessObject::SetNumberOfIndexedOutputs(2);
+
+  this->ProcessObject::SetNthOutput(0, MakeOutput(0));
+  this->ProcessObject::SetNthOutput(1, MakeOutput(1));
 }
 
 
@@ -84,6 +89,40 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetMovingImag
   return static_cast<const MovingImageType *>(this->ProcessObject::GetInput(1));
 }
 
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedMovingImage() const ->
+  typename MovingImageType::Pointer
+{
+  using ResampleFilterType = ResampleImageFilter<MovingImageType, MovingImageType>;
+  typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+  resampleFilter->SetInput(this->GetMovingImage());
+  resampleFilter->SetTransform(this->GetForwardTransform());
+  resampleFilter->SetSize(this->GetFixedImage()->GetLargestPossibleRegion().GetSize());
+  resampleFilter->SetOutputOrigin(this->GetFixedImage()->GetOrigin());
+  resampleFilter->SetOutputSpacing(this->GetFixedImage()->GetSpacing());
+  resampleFilter->SetOutputDirection(this->GetFixedImage()->GetDirection());
+  resampleFilter->Update();
+  return resampleFilter->GetOutput();
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedFixedImage() const ->
+  typename FixedImageType::Pointer
+{
+  using ResampleFilterType = ResampleImageFilter<FixedImageType, FixedImageType>;
+  typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+  resampleFilter->SetInput(this->GetFixedImage());
+  resampleFilter->SetTransform(this->GetInverseTransform());
+  resampleFilter->SetSize(this->GetMovingImage()->GetLargestPossibleRegion().GetSize());
+  resampleFilter->SetOutputOrigin(this->GetMovingImage()->GetOrigin());
+  resampleFilter->SetOutputSpacing(this->GetMovingImage()->GetSpacing());
+  resampleFilter->SetOutputDirection(this->GetMovingImage()->GetDirection());
+  resampleFilter->Update();
+  return resampleFilter->GetOutput();
+}
+
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 auto
@@ -108,7 +147,7 @@ void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutputs()
 {
   const DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetForwardTransformInput();
-  if (!decoratedOutputForwardTransform->Get())
+  if (!decoratedOutputForwardTransform || !decoratedOutputForwardTransform->Get())
   {
     typename OutputTransformType::Pointer ptr;
     Self::MakeOutputTransform(ptr);
@@ -118,7 +157,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutpu
   }
 
   const DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetInverseTransformInput();
-  if (!decoratedOutputInverseTransform->Get())
+  if (!decoratedOutputInverseTransform || !decoratedOutputInverseTransform->Get())
   {
     typename OutputTransformType::Pointer ptr;
     Self::MakeOutputTransform(ptr);
@@ -129,20 +168,150 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutpu
 }
 
 
-//template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
-//auto
-//ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
-//  -> DataObjectPointer
-//{
-//  return DataObjectPointer();
-//}
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
+  -> DataObjectPointer
+{
+  typename OutputTransformType::Pointer ptr;
+  Self::MakeOutputTransform(ptr);
+  typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
+  decoratedOutputTransform->Set(ptr);
+  return decoratedOutputTransform;
+}
 
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+template <typename TImage>
+auto
+itk::ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImageToInternalType(
+  const TImage * inputImage) -> typename InternalImageType::Pointer
+{
+  using CastFilterType = CastImageFilter<TImage, InternalImageType>;
+  typename CastFilterType::Pointer castFilter = CastFilterType::New();
+  castFilter->SetInput(inputImage);
+  castFilter->Update();
+  typename InternalImageType::Pointer outputImage = castFilter->GetOutput();
+  outputImage->DisconnectPipeline();
+  return outputImage;
+}
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
 {
   this->AllocateOutputs();
+
+  this->UpdateProgress(0.01);
+  std::stringstream ss;
+  m_Helper->SetLogStream(ss);
+
+  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
+  if (decoratedInitialTransform != nullptr)
+  {
+    const InitialTransformType * initialTransform = decoratedInitialTransform->Get();
+    if (initialTransform != nullptr)
+    {
+      m_Helper->SetMovingInitialTransform(initialTransform);
+    }
+  }
+
+  std::string whichTransform = this->GetTypeOfTransform();
+  std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
+  typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
+
+  double learningRate = 0.2; // TODO: Make this a parameter
+
+  switch (xfrmMethod)
+  {
+    case RegistrationHelperType::Affine: {
+      m_Helper->AddAffineTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::Rigid: {
+      m_Helper->AddRigidTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::CompositeAffine: {
+      m_Helper->AddCompositeAffineTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::Similarity: {
+      m_Helper->AddSimilarityTransform(learningRate);
+    }
+    break;
+    case RegistrationHelperType::Translation: {
+      m_Helper->AddTranslationTransform(learningRate);
+    }
+    break;
+    default:
+      itkExceptionMacro(<< "Unsupported transform type: " << whichTransform);
+  }
+
+  // set the vector-vector parameters
+  m_Helper->SetIterations({ { 2100, 1200, 1200, 10 } });
+  m_Helper->SetRestrictDeformationOptimizerWeights({ { 1.0, 1.0, 1.0, 1.0 } });
+  m_Helper->SetConvergenceWindowSizes({ { 10, 10, 10, 10 } });
+  m_Helper->SetConvergenceThresholds({ { 1e-6, 1e-6, 1e-6, 1e-6 } });
+  m_Helper->SetSmoothingSigmas({ { 3.0, 2.0, 1.0, 0.0 } });
+  m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ true });
+  m_Helper->SetShrinkFactors({ { 6, 4, 2, 1 } });
+
+  typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType("mi");
+
+  // assign default image metric variables
+  typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
+  int                                               numberOfBins = 32;
+  unsigned int                                      radius = 4;
+  bool                                              useGradientFilter = false;
+
+  typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
+  typename InternalImageType::Pointer movigImage = this->CastImageToInternalType(this->GetMovingImage());
+  this->UpdateProgress(0.1);
+
+  m_Helper->AddMetric(currentMetric,
+                      fixedImage,
+                      movigImage,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      0u,
+                      1.0,
+                      samplingStrategy,
+                      numberOfBins,
+                      radius,
+                      useGradientFilter,
+                      false,
+                      1.0,
+                      50u,
+                      1.1,
+                      false,
+                      0.2,
+                      std::sqrt(5),
+                      std::sqrt(5));
+
+  int retVal = m_Helper->DoRegistration();
+  this->UpdateProgress(0.95);
+  if (retVal != EXIT_SUCCESS)
+  {
+    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
+  }
+
+  typename OutputTransformType::Pointer          forwardTransform = m_Helper->GetModifiableCompositeTransform();
+  typename DecoratedOutputTransformType::Pointer decoratedForwardTransform = DecoratedOutputTransformType::New();
+  decoratedForwardTransform->Set(forwardTransform);
+  this->SetForwardTransformInput(decoratedForwardTransform);
+
+  typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
+  if (forwardTransform->GetInverse(inverseTransform))
+  {
+    typename DecoratedOutputTransformType::Pointer decoratedInverseTransform = DecoratedOutputTransformType::New();
+    decoratedInverseTransform->Set(inverseTransform);
+    this->SetInverseTransformInput(decoratedInverseTransform);
+  }
+
+  this->UpdateProgress(1.0);
 }
 
 } // end namespace itk
