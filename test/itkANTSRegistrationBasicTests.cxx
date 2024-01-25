@@ -112,6 +112,8 @@ testFilter(std::string outDir)
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
   filter->SetTypeOfTransform("Rigid");
+  auto identityTransform = itk::TranslationTransform<double, Dimension>::New();
+  filter->SetInitialTransform(identityTransform.GetPointer()); // to test the feature
   filter->Update();
 
   auto forwardTransform = filter->GetForwardTransform();
