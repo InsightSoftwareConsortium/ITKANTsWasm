@@ -36,6 +36,12 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistrat
   ProcessObject::SetNumberOfIndexedInputs(3);
   ProcessObject::SetNumberOfIndexedOutputs(2);
 
+  SetPrimaryInputName("FixedImage");
+  AddRequiredInputName("MovingImage", 1);
+  AddOptionalInputName("InitialTransform", 2);
+  SetPrimaryOutputName("ForwardTransform");
+  // AddRequiredOutputName("InverseTransform", 1); // this method does not exist in ProcessObject
+
   this->ProcessObject::SetNthOutput(0, MakeOutput(0));
   this->ProcessObject::SetNthOutput(1, MakeOutput(1));
 }
@@ -146,24 +152,16 @@ template <typename TFixedImage, typename TMovingImage, typename TParametersValue
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutputs()
 {
-  const DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetForwardTransformInput();
+  const DecoratedOutputTransformType * decoratedOutputForwardTransform = this->GetOutput(0);
   if (!decoratedOutputForwardTransform || !decoratedOutputForwardTransform->Get())
   {
-    typename OutputTransformType::Pointer ptr;
-    Self::MakeOutputTransform(ptr);
-    typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
-    decoratedOutputTransform->Set(ptr);
-    this->SetForwardTransformInput(decoratedOutputTransform);
+    this->ProcessObject::SetNthOutput(0, MakeOutput(0));
   }
 
-  const DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetInverseTransformInput();
+  const DecoratedOutputTransformType * decoratedOutputInverseTransform = this->GetOutput(1);
   if (!decoratedOutputInverseTransform || !decoratedOutputInverseTransform->Get())
   {
-    typename OutputTransformType::Pointer ptr;
-    Self::MakeOutputTransform(ptr);
-    typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
-    decoratedOutputTransform->Set(ptr);
-    this->SetInverseTransformInput(decoratedOutputTransform);
+    this->ProcessObject::SetNthOutput(1, MakeOutput(1));
   }
 }
 
@@ -298,17 +296,13 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
   }
 
-  typename OutputTransformType::Pointer          forwardTransform = m_Helper->GetModifiableCompositeTransform();
-  typename DecoratedOutputTransformType::Pointer decoratedForwardTransform = DecoratedOutputTransformType::New();
-  decoratedForwardTransform->Set(forwardTransform);
-  this->SetForwardTransformInput(decoratedForwardTransform);
+  typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
+  this->SetForwardTransform(forwardTransform);
 
   typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   if (forwardTransform->GetInverse(inverseTransform))
   {
-    typename DecoratedOutputTransformType::Pointer decoratedInverseTransform = DecoratedOutputTransformType::New();
-    decoratedInverseTransform->Set(inverseTransform);
-    this->SetInverseTransformInput(decoratedInverseTransform);
+    this->SetInverseTransform(inverseTransform);
   }
 
   this->UpdateProgress(1.0);

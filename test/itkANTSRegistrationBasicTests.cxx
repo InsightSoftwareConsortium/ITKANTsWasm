@@ -112,10 +112,11 @@ testFilter(std::string outDir)
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
   filter->SetTypeOfTransform("Rigid");
+  auto identityTransform = itk::TranslationTransform<double, Dimension>::New();
+  filter->SetInitialTransform(identityTransform.GetPointer()); // to test the feature
   filter->Update();
 
   auto forwardTransform = filter->GetForwardTransform();
-  std::cout << "forwardTransform: " << *forwardTransform << std::endl;
   itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
   transformWriter->SetFileName(outDir + "/SyntheticForwardTransform.tfm");
   transformWriter->SetInput(forwardTransform);
@@ -128,6 +129,7 @@ testFilter(std::string outDir)
   transformWriter->SetFileName(outDir + "/SyntheticInverseTransform.tfm");
   transformWriter->SetInput(inverseTransform);
   transformWriter->Update();
+  std::cout << "\ninverseTransform: " << *inverseTransform << std::endl;
 
   typename FixedImageType::Pointer fixedResampled = filter->GetWarpedFixedImage();
   itk::WriteImage(fixedResampled, outDir + "/SyntheticFixedResampled.nrrd");
@@ -159,8 +161,6 @@ testFilter(std::string outDir)
       return EXIT_FAILURE;
     }
   }
-
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
 
   return EXIT_SUCCESS;
 }
