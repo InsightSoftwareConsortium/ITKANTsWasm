@@ -108,14 +108,22 @@ public:
   itkSetStringMacro(TypeOfTransform);
   itkGetStringMacro(TypeOfTransform);
 
-  /** Set/Get the initial fixed transform. */
+  /** Set/Get the initial transform. */
   itkSetGetDecoratedObjectInputMacro(InitialTransform, InitialTransformType);
 
   /** Returns the transform resulting from the registration process  */
-  itkSetGetDecoratedObjectInputMacro(ForwardTransform, OutputTransformType);
+  virtual const OutputTransformType *
+  GetForwardTransform() const
+  {
+    return this->GetOutput(0)->Get();
+  }
 
   /** Returns the inverse transform resulting from the registration process, if available  */
-  itkSetGetDecoratedObjectInputMacro(InverseTransform, OutputTransformType);
+  virtual const OutputTransformType *
+  GetInverseTransform() const
+  {
+    return this->GetOutput(1)->Get();
+  }
 
   virtual DecoratedOutputTransformType *
   GetOutput(DataObjectPointerArraySizeType i);
@@ -133,7 +141,7 @@ protected:
   using RegistrationHelperType = ::ants::RegistrationHelper<TParametersValueType, FixedImageType::ImageDimension>;
   using InternalImageType = typename RegistrationHelperType::ImageType; // float or double pixels
 
-  template<typename TImage>
+  template <typename TImage>
   typename InternalImageType::Pointer
   CastImageToInternalType(const TImage *);
 
@@ -152,6 +160,20 @@ protected:
   MakeOutputTransform(SmartPointer<TTransform> & ptr)
   {
     ptr = TTransform::New();
+  }
+
+  /** Sets the primary output to the provided forward transform. */
+  virtual void
+  SetForwardTransform(const OutputTransformType * forwardTransform)
+  {
+    return this->GetOutput(0)->Set(forwardTransform);
+  }
+
+  /** Sets the second output to the provided inverse transform. */
+  virtual void
+  SetInverseTransform(const OutputTransformType * inverseTransform)
+  {
+    return this->GetOutput(1)->Set(inverseTransform);
   }
 
   std::string m_TypeOfTransform{ "Affine" };
