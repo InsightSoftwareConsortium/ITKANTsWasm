@@ -129,7 +129,7 @@ protected:
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   using Superclass::MakeOutput;
-  // DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+  DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
   using RegistrationHelperType = ::ants::RegistrationHelper<TParametersValueType, FixedImageType::ImageDimension>;
   using InternalImageType = typename RegistrationHelperType::ImageType; // float or double pixels
 

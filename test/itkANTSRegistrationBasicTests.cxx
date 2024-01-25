@@ -160,6 +160,8 @@ testFilter(std::string outDir)
     }
   }
 
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
+
   return EXIT_SUCCESS;
 }
 } // namespace

@@ -36,13 +36,8 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistrat
   ProcessObject::SetNumberOfIndexedInputs(3);
   ProcessObject::SetNumberOfIndexedOutputs(2);
 
-  typename OutputTransformType::Pointer ptr;
-  Self::MakeOutputTransform(ptr);
-  typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
-  decoratedOutputTransform->Set(ptr);
-  this->ProcessObject::SetNthOutput(0, decoratedOutputTransform);
-
-  // this->SetForwardTransformInput(decoratedOutputTransform);
+  this->ProcessObject::SetNthOutput(0, MakeOutput(0));
+  this->ProcessObject::SetNthOutput(1, MakeOutput(1));
 }
 
 
@@ -173,13 +168,17 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::AllocateOutpu
 }
 
 
-// template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
-// auto
-// ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
-//   -> DataObjectPointer
-//{
-//   return DataObjectPointer();
-// }
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
+  -> DataObjectPointer
+{
+  typename OutputTransformType::Pointer ptr;
+  Self::MakeOutputTransform(ptr);
+  typename DecoratedOutputTransformType::Pointer decoratedOutputTransform = DecoratedOutputTransformType::New();
+  decoratedOutputTransform->Set(ptr);
+  return decoratedOutputTransform;
+}
 
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
