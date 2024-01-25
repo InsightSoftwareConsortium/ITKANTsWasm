@@ -37,6 +37,7 @@ doTest(int argc, char * argv[])
   itk::TxtTransformIOFactory::RegisterOneFactory();
 
   using ImageType = itk::Image<float, Dimension>;
+  using LabelImageType = itk::Image<unsigned char, Dimension>;
   using FilterType = itk::ANTSRegistration<ImageType, ImageType>;
   typename FilterType::Pointer filter = FilterType::New();
 
@@ -55,25 +56,50 @@ doTest(int argc, char * argv[])
     ITK_TEST_EXPECT_EQUAL(initialTransformList->size(), 1);
 
     auto firstTransform = initialTransformList->begin();
+    bool transformSupported = false;
+    if constexpr (Dimension == 3)
+    {
+      if (!strcmp((*firstTransform)->GetNameOfClass(), "VersorRigid3DTransform"))
+      {
+        using VersorType = itk::VersorRigid3DTransform<double>;
+        typename VersorType::Pointer versor = static_cast<VersorType *>((*firstTransform).GetPointer());
+        versor->Print(std::cout);
+        filter->SetInitialTransform(versor);
+        transformSupported = true;
+      }
+    }
     if (!strcmp((*firstTransform)->GetNameOfClass(), "CompositeTransform"))
     {
       using CompositeType = itk::CompositeTransform<double, Dimension>;
-      typename CompositeType::Pointer compositeRead = static_cast<CompositeType *>((*firstTransform).GetPointer());
-      compositeRead->Print(std::cout);
-      filter->SetInitialTransform(compositeRead);
+      typename CompositeType::Pointer composite = static_cast<CompositeType *>((*firstTransform).GetPointer());
+      composite->Print(std::cout);
+      filter->SetInitialTransform(composite);
     }
     else if (!strcmp((*firstTransform)->GetNameOfClass(), "AffineTransform"))
     {
       using AffineType = itk::AffineTransform<double, Dimension>;
-      typename AffineType::Pointer affineRead = static_cast<AffineType *>((*firstTransform).GetPointer());
-      affineRead->Print(std::cout);
-      filter->SetInitialTransform(affineRead);
+      typename AffineType::Pointer affine = static_cast<AffineType *>((*firstTransform).GetPointer());
+      affine->Print(std::cout);
+      filter->SetInitialTransform(affine);
     }
-    else
+    else if (!transformSupported)
     {
       std::cout << "Unsupported initial transform type: " << (*firstTransform)->GetNameOfClass() << std::endl;
       return EXIT_FAILURE;
     }
+  }
+
+  if (argc > 6)
+  {
+    typename LabelImageType::Pointer fixedMask;
+    ITK_TRY_EXPECT_NO_EXCEPTION(fixedMask = itk::ReadImage<LabelImageType>(argv[6]));
+    filter->SetFixedMask(fixedMask);
+  }
+  if (argc > 7)
+  {
+    typename LabelImageType::Pointer movingMask;
+    ITK_TRY_EXPECT_NO_EXCEPTION(movingMask = itk::ReadImage<LabelImageType>(argv[7]));
+    filter->SetMovingMask(movingMask);
   }
 
   filter->SetFixedImage(fixedImage);
@@ -109,7 +135,9 @@ itkANTSRegistrationTest(int argc, char * argv[])
   {
     std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
-    std::cerr << " fixedImage movingImage outTransform [movingInFixedSpace] [initialTransform]";
+    std::cerr << " fixedImage movingImage outTransform";
+    std::cerr << " [outMovingResampledToFixedSpace] [initialTransform]";
+    std::cerr << " [fixedImageMask] [movingImageMask]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
