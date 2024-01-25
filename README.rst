@@ -5,8 +5,8 @@ ITKANTsWasm
     :target: https://github.com/thewtex/ANTsWasm/actions/workflows/build-test-package.yml
     :alt: Build Status
 
-.. image:: https://img.shields.io/pypi/v/itk-antswasm.svg
-    :target: https://pypi.python.org/pypi/itk-antswasm
+.. image:: https://img.shields.io/pypi/v/itk-ants.svg
+    :target: https://pypi.python.org/pypi/itk-ants
     :alt: PyPI Version
 
 .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
