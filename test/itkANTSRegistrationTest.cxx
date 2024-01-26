@@ -106,10 +106,13 @@ doTest(int argc, char * argv[])
     double gradientStep = std::stod(argv[8]);
     filter->SetGradientStep(gradientStep);
   }
+  if (argc > 9)
+  {
+    filter->SetTypeOfTransform(argv[9]);
+  }
 
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
-  filter->SetTypeOfTransform("Affine");
   ITK_TRY_EXPECT_NO_EXCEPTION(filter->Update());
 
   // debug
@@ -143,7 +146,7 @@ itkANTSRegistrationTest(int argc, char * argv[])
     std::cerr << " fixedImage movingImage outTransform";
     std::cerr << " [outMovingResampledToFixedSpace] [initialTransform]";
     std::cerr << " [fixedImageMask] [movingImageMask]";
-    std::cerr << " [gradientStep]";
+    std::cerr << " [gradientStep] [typeOfTransform]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
