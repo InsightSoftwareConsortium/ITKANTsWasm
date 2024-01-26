@@ -46,6 +46,7 @@ public:
   using MovingImageType = TMovingImage;
   using FixedPixelType = typename FixedImageType::PixelType;
   using MovingPixelType = typename MovingImageType::PixelType;
+  using LabelImageType = itk::Image<unsigned char, ImageDimension>;
 
   using ParametersValueType = TParametersValueType;
   using TransformType = Transform<TParametersValueType, ImageDimension, ImageDimension>;
@@ -73,7 +74,7 @@ public:
   virtual const FixedImageType *
   GetFixedImage() const;
 
-  /** Set/get the fixed image. */
+  /** Set/get the moving image. */
   virtual void
   SetMovingImage(const MovingImageType * image);
   virtual const MovingImageType *
@@ -89,6 +90,18 @@ public:
    * This method raises an exception if inverse transform is not available. */
   virtual typename FixedImageType::Pointer
   GetWarpedFixedImage() const;
+
+  /** Set/get the fixed image's mask. */
+  virtual void
+  SetFixedMask(const LabelImageType * mask);
+  virtual const LabelImageType *
+  GetFixedMask() const;
+
+  /** Set/get the moving image's mask. */
+  virtual void
+  SetMovingMask(const LabelImageType * mask);
+  virtual const LabelImageType *
+  GetMovingMask() const;
 
   /** Set the type of transformation to be optimized. A setting defines
    * a set of transformation parameterizations that are optimized,
@@ -184,8 +197,9 @@ private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
 
 #ifdef ITK_USE_CONCEPT_CHECKING
-  // Add concept checking such as
-  // itkConceptMacro( FloatingPointPixel, ( itk::Concept::IsFloatingPoint< typename InputImageType::PixelType > ) );
+  static_assert(TFixedImage::ImageDimension == TMovingImage::ImageDimension,
+                "Fixed and moving images must have the same dimension.");
+  static_assert(ImageDimension >= 2, "Images must be at least two-dimensional.");
 #endif
 };
 } // namespace itk

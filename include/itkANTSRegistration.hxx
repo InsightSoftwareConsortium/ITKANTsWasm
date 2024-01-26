@@ -60,7 +60,7 @@ template <typename TFixedImage, typename TMovingImage, typename TParametersValue
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetFixedImage(const FixedImageType * image)
 {
-  if (image != static_cast<FixedImageType *>(this->ProcessObject::GetInput(0)))
+  if (image != this->GetFixedImage())
   {
     this->ProcessObject::SetNthInput(0, const_cast<FixedImageType *>(image));
     this->Modified();
@@ -80,7 +80,7 @@ template <typename TFixedImage, typename TMovingImage, typename TParametersValue
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetMovingImage(const MovingImageType * image)
 {
-  if (image != static_cast<MovingImageType *>(this->ProcessObject::GetInput(1)))
+  if (image != this->GetMovingImage())
   {
     this->ProcessObject::SetNthInput(1, const_cast<MovingImageType *>(image));
     this->Modified();
@@ -127,6 +127,42 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedFixe
   resampleFilter->SetOutputDirection(this->GetMovingImage()->GetDirection());
   resampleFilter->Update();
   return resampleFilter->GetOutput();
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetFixedMask(const LabelImageType * mask)
+{
+  if (mask != this->GetFixedMask())
+  {
+    this->ProcessObject::SetInput("FixedMask", const_cast<LabelImageType *>(mask));
+    this->Modified();
+  }
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetFixedMask() const -> const LabelImageType *
+{
+  return static_cast<const LabelImageType *>(this->ProcessObject::GetInput("FixedMask"));
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+inline void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetMovingMask(const LabelImageType * mask)
+{
+  if (mask != this->GetMovingMask())
+  {
+    this->ProcessObject::SetInput("MovingMask", const_cast<LabelImageType *>(mask));
+    this->Modified();
+  }
+}
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+auto
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetMovingMask() const -> const LabelImageType *
+{
+  return static_cast<const LabelImageType *>(this->ProcessObject::GetInput("MovingMask"));
 }
 
 
@@ -212,6 +248,17 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     {
       m_Helper->SetMovingInitialTransform(initialTransform);
     }
+  }
+
+  typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
+  if (fixedMask != nullptr)
+  {
+    m_Helper->AddFixedImageMask(fixedMask);
+  }
+  typename LabelImageType::Pointer movingMask(const_cast<LabelImageType *>(this->GetMovingMask()));
+  if (movingMask != nullptr)
+  {
+    m_Helper->AddMovingImageMask(movingMask);
   }
 
   std::string whichTransform = this->GetTypeOfTransform();
