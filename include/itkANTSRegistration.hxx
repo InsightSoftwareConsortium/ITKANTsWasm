@@ -265,28 +265,26 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
   typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
 
-  double learningRate = 0.2; // TODO: Make this a parameter
-
   switch (xfrmMethod)
   {
     case RegistrationHelperType::Affine: {
-      m_Helper->AddAffineTransform(learningRate);
+      m_Helper->AddAffineTransform(m_GradientStep);
     }
     break;
     case RegistrationHelperType::Rigid: {
-      m_Helper->AddRigidTransform(learningRate);
+      m_Helper->AddRigidTransform(m_GradientStep);
     }
     break;
     case RegistrationHelperType::CompositeAffine: {
-      m_Helper->AddCompositeAffineTransform(learningRate);
+      m_Helper->AddCompositeAffineTransform(m_GradientStep);
     }
     break;
     case RegistrationHelperType::Similarity: {
-      m_Helper->AddSimilarityTransform(learningRate);
+      m_Helper->AddSimilarityTransform(m_GradientStep);
     }
     break;
     case RegistrationHelperType::Translation: {
-      m_Helper->AddTranslationTransform(learningRate);
+      m_Helper->AddTranslationTransform(m_GradientStep);
     }
     break;
     default:

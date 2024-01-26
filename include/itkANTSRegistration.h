@@ -140,6 +140,10 @@ public:
     return this->GetOutput(1)->Get();
   }
 
+  /** Set/Get the gradient step size for transform optimizers that use it. */
+  itkSetMacro(GradientStep, ParametersValueType);
+  itkGetMacro(GradientStep, ParametersValueType);
+
   virtual DecoratedOutputTransformType *
   GetOutput(DataObjectPointerArraySizeType i);
   virtual const DecoratedOutputTransformType *
@@ -192,6 +196,8 @@ protected:
   }
 
   std::string m_TypeOfTransform{ "Affine" };
+
+  ParametersValueType m_GradientStep{ 0.2 };
 
 private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };

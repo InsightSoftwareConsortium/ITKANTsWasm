@@ -89,17 +89,22 @@ doTest(int argc, char * argv[])
     }
   }
 
-  if (argc > 6)
+  if (argc > 6 && std::string(argv[6]) != "none")
   {
     typename LabelImageType::Pointer fixedMask;
     ITK_TRY_EXPECT_NO_EXCEPTION(fixedMask = itk::ReadImage<LabelImageType>(argv[6]));
     filter->SetFixedMask(fixedMask);
   }
-  if (argc > 7)
+  if (argc > 7 && std::string(argv[7]) != "none")
   {
     typename LabelImageType::Pointer movingMask;
     ITK_TRY_EXPECT_NO_EXCEPTION(movingMask = itk::ReadImage<LabelImageType>(argv[7]));
     filter->SetMovingMask(movingMask);
+  }
+  if (argc > 8)
+  {
+    double gradientStep = std::stod(argv[8]);
+    filter->SetGradientStep(gradientStep);
   }
 
   filter->SetFixedImage(fixedImage);
@@ -138,6 +143,7 @@ itkANTSRegistrationTest(int argc, char * argv[])
     std::cerr << " fixedImage movingImage outTransform";
     std::cerr << " [outMovingResampledToFixedSpace] [initialTransform]";
     std::cerr << " [fixedImageMask] [movingImageMask]";
+    std::cerr << " [gradientStep]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
