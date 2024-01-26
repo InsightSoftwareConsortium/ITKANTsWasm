@@ -51,6 +51,25 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationNoMasks
     0.001  # (minimum?) StepLength
   )
 
+itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_AffineScaleMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineScaleMasks.result.nii.gz
+    --compareIntensityTolerance 9
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/scale.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineScaleMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineScaleMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}  # initial transform
+    DATA{Input/test_mask.nii.gz}  # fixedMask
+    DATA{Input/scale.test_mask.nii.gz}  # movingMask
+    0.001  # (minimum?) StepLength
+  )
+
 itk_add_test(NAME antsRegistrationTest_AffineScaleNoMasks
   COMMAND ANTsWasmTestDriver
     --compare
