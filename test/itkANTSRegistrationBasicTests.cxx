@@ -201,7 +201,11 @@ itkANTSRegistrationBasicTests(int argc, char * argv[])
   }
 
   std::cout << "\nTesting: fixed and moving image are of the same pixel type, 3D" << std::endl;
-  return testFilter<float, float, 3>(argv[1]); // 2D test does not pass yet
+  retVal = testFilter<float, float, 3>(argv[1]); // 2D test does not pass yet
+  if (retVal != EXIT_SUCCESS)
+  {
+    return retVal;
+  }
 
   std::cout << "\nTesting: fixed and moving image are of the same pixel type, 2D" << std::endl;
   return testFilter<short, short, 2>(argv[1]);
