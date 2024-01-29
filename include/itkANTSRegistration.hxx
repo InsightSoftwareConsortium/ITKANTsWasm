@@ -288,7 +288,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     }
     break;
     default:
-      itkExceptionMacro(<< "Unsupported transform type: " << whichTransform);
+      itkExceptionMacro(<< "Unsupported transform type: " << this->GetTypeOfTransform());
   }
 
   // set the vector-vector parameters

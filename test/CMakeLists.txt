@@ -30,6 +30,7 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationMasks
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
     0.001  # (minimum?) StepLength
+    Affine
   )
 
 itk_add_test(NAME antsRegistrationTest_AffineRotationNoMasks
@@ -49,6 +50,7 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationNoMasks
     none  # fixedMask
     none  # movingMask
     0.001  # (minimum?) StepLength
+    Affine
   )
 
 itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
@@ -68,6 +70,7 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/scale.test_mask.nii.gz}  # movingMask
     0.001  # (minimum?) StepLength
+    Affine
   )
 
 itk_add_test(NAME antsRegistrationTest_AffineScaleNoMasks
@@ -87,4 +90,65 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleNoMasks
     none  # fixedMask
     none  # movingMask
     0.001  # (minimum?) StepLength
+    Affine
+  )
+
+itk_add_test(NAME antsRegistrationTest_AffineTranslationNoMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_AffineTranslationNoMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineTranslationNoMasks.result.nii.gz
+    --compareIntensityTolerance 7
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 777
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/translation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineTranslationNoMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineTranslationNoMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_antsRegistrationTest_AffineTranslationMasks.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.001  # (minimum?) StepLength
+    Affine
+  )
+
+itk_add_test(NAME antsRegistrationTest_RigidRotationHeadMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_RigidRotationHeadMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationHeadMasks.result.nii.gz
+    --compareIntensityTolerance 7
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 777
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationHeadMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationHeadMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationHeadMasks.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.001  # (minimum?) StepLength
+    Rigid
+  )
+
+itk_add_test(NAME antsRegistrationTest_RigidRotationNoMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_RigidRotationNoMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationNoMasks.result.nii.gz
+    --compareIntensityTolerance 7
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 777
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationNoMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationNoMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.001  # (minimum?) StepLength
+    Rigid
   )
