@@ -127,11 +127,24 @@ public:
   itkSetStringMacro(TypeOfTransform);
   itkGetStringMacro(TypeOfTransform);
 
-  /** The metric for the affine part (GC, mattes, meansquares). */
+  /** The metric for the affine part. Allowed metrics:
+   * "MeanSquares": from MeanSquaresImageToImageMetricv4
+   * "CC": neighborhood normalized cross correlation from ANTSNeighborhoodCorrelationImageToImageMetricv4
+   * "GC": global normalized correlation from CorrelationImageToImageMetricv4
+   * "MI": mutual information from JointHistogramMutualInformationImageToImageMetricv4
+   * "Mattes" (default): Mattes mutual informatio from MattesMutualInformationImageToImageMetricv4
+   */
   itkSetStringMacro(AffineMetric);
   itkGetStringMacro(AffineMetric);
 
-  /** The metric for the SyN part (CC, mattes, meansquares, demons). */
+  /** The metric for the SyN part. Allowed metrics:
+   * "MeanSquares": from MeanSquaresImageToImageMetricv4
+   * "CC": neighborhood normalized cross correlation from ANTSNeighborhoodCorrelationImageToImageMetricv4
+   * "GC": global normalized correlation from CorrelationImageToImageMetricv4
+   * "MI": mutual information from JointHistogramMutualInformationImageToImageMetricv4
+   * "Mattes" (default): Mattes mutual informatio from MattesMutualInformationImageToImageMetricv4
+   * "Demons": from DemonsImageToImageMetricv4
+   */
   itkSetStringMacro(SynMetric);
   itkGetStringMacro(SynMetric);
 
