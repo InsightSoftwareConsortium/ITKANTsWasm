@@ -293,9 +293,6 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 
   // set the vector-vector parameters
   m_Helper->SetIterations({ m_AffineIterations });
-  m_Helper->SetRestrictDeformationOptimizerWeights({ { 1.0, 1.0, 1.0, 1.0 } });
-  m_Helper->SetConvergenceWindowSizes({ { 10, 10, 10, 10 } });
-  m_Helper->SetConvergenceThresholds({ { 1e-6, 1e-6, 1e-6, 1e-6 } });
   m_Helper->SetSmoothingSigmas({ m_SmoothingSigmas });
   m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ m_SmoothingInPhysicalUnits });
   m_Helper->SetShrinkFactors({ m_ShrinkFactors });
@@ -303,6 +300,14 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   {
     m_Helper->SetRegistrationRandomSeed(m_RandomSeed);
   }
+
+  // match the length of the iterations vector by these defaulted parameters
+  std::vector<double> weights(m_AffineIterations.size(), 1.0);
+  m_Helper->SetRestrictDeformationOptimizerWeights({ weights });
+  std::vector<unsigned int> windows(m_AffineIterations.size(), 10);
+  m_Helper->SetConvergenceWindowSizes({ windows });
+  std::vector<double> thresholds(m_AffineIterations.size(), 1e-6);
+  m_Helper->SetConvergenceThresholds({ thresholds });
 
   std::string metricType = this->GetAffineMetric();
   std::transform(metricType.begin(), metricType.end(), metricType.begin(), tolower);
