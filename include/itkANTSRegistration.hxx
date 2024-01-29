@@ -292,21 +292,25 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
 
   // set the vector-vector parameters
-  m_Helper->SetIterations({ { 2100, 1200, 1200, 10 } });
+  m_Helper->SetIterations({ m_AffineIterations });
   m_Helper->SetRestrictDeformationOptimizerWeights({ { 1.0, 1.0, 1.0, 1.0 } });
   m_Helper->SetConvergenceWindowSizes({ { 10, 10, 10, 10 } });
   m_Helper->SetConvergenceThresholds({ { 1e-6, 1e-6, 1e-6, 1e-6 } });
-  m_Helper->SetSmoothingSigmas({ { 3.0, 2.0, 1.0, 0.0 } });
-  m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ true });
-  m_Helper->SetShrinkFactors({ { 6, 4, 2, 1 } });
+  m_Helper->SetSmoothingSigmas({ m_SmoothingSigmas });
+  m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ m_SmoothingInPhysicalUnits });
+  m_Helper->SetShrinkFactors({ m_ShrinkFactors });
+  if (m_RandomSeed != 0)
+  {
+    m_Helper->SetRegistrationRandomSeed(m_RandomSeed);
+  }
 
-  typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType("mi");
+  std::string metricType = this->GetAffineMetric();
+  std::transform(metricType.begin(), metricType.end(), metricType.begin(), tolower);
+  typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType(metricType);
 
   // assign default image metric variables
-  typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
-  int                                               numberOfBins = 32;
-  unsigned int                                      radius = 4;
-  bool                                              useGradientFilter = false;
+  unsigned int radius = 4;
+  bool         useGradientFilter = false;
 
   typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
   typename InternalImageType::Pointer movigImage = this->CastImageToInternalType(this->GetMovingImage());
@@ -321,8 +325,8 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       nullptr,
                       0u,
                       1.0,
-                      samplingStrategy,
-                      numberOfBins,
+                      RegistrationHelperType::regular,
+                      m_NumberOfBins,
                       radius,
                       useGradientFilter,
                       false,
@@ -330,7 +334,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       50u,
                       1.1,
                       false,
-                      0.2,
+                      m_SamplingRate,
                       std::sqrt(5),
                       std::sqrt(5));
 

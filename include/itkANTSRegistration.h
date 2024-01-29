@@ -31,7 +31,13 @@ namespace itk
  *
  * \brief Image-to-image registration method parameterized according to ANTsR or ANTsPy.
  *
+ * This uses image pyramids to provide reasonable registration performance and robustness.
+ * Number of pyramid levels is controlled via iteration parameters.
+ * There will be as many pyramid levels as there are elements in the iteration array.
+ * Number of elements in shrink factor and smoothing sigma arrays (if provided) must match.
+ *
  * \ingroup ANTsWasm
+ * \ingroup Registration
  *
  */
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType = double>
@@ -121,6 +127,14 @@ public:
   itkSetStringMacro(TypeOfTransform);
   itkGetStringMacro(TypeOfTransform);
 
+  /** The metric for the affine part (GC, mattes, meansquares). */
+  itkSetStringMacro(AffineMetric);
+  itkGetStringMacro(AffineMetric);
+
+  /** The metric for the SyN part (CC, mattes, meansquares, demons). */
+  itkSetStringMacro(SynMetric);
+  itkGetStringMacro(SynMetric);
+
   /** Set/Get the initial transform.
    * It transforms points from the fixed image to the moving image reference frame.
    * It is typically used to resample the moving image onto the fixed image grid. */
@@ -143,6 +157,55 @@ public:
   /** Set/Get the gradient step size for transform optimizers that use it. */
   itkSetMacro(GradientStep, ParametersValueType);
   itkGetMacro(GradientStep, ParametersValueType);
+
+  /** Set/Get smoothing for update field.
+   * This only affects transform which use a deformation field. */
+  itkSetMacro(FlowSigma, ParametersValueType);
+  itkGetMacro(FlowSigma, ParametersValueType);
+
+  /** Set/Get smoothing for total field.
+   * This only affects transform which use a deformation field. */
+  itkSetMacro(TotalSigma, ParametersValueType);
+  itkGetMacro(TotalSigma, ParametersValueType);
+
+  /** Set/Get randomg sampling percentage for estimaging the metric.
+   * It is normalized to 0.0-1.0 range.
+   * This can impact speed but also reproducibility and/or accuracy. */
+  itkSetClampMacro(SamplingRate, ParametersValueType, 0.0, 1.0);
+  itkGetMacro(SamplingRate, ParametersValueType);
+
+  /** Set/Get number of bins for the histogram in the mutual information metric. */
+  itkSetClampMacro(NumberOfBins, int, 5, NumericTraits<int>::max());
+  itkGetMacro(NumberOfBins, int);
+
+  /** Set/Get a random seed to improve reproducibility.
+   * Note: ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS should be 1 for full reproducibility. */
+  itkSetMacro(RandomSeed, int);
+  itkGetMacro(RandomSeed, int);
+
+  /** Set/Get whether smoothing parameters are expressed in physical units (typically millimeters). */
+  itkSetMacro(SmoothingInPhysicalUnits, bool);
+  itkGetMacro(SmoothingInPhysicalUnits, bool);
+
+  /** Set/Get number of iterations for each pyramid level for SyN transforms.
+   * Shrink factors and smoothing sigmas for SyN are determined based on iterations. */
+  itkSetMacro(SynIterations, std::vector<unsigned int>);
+  itkGetConstReferenceMacro(SynIterations, std::vector<unsigned int>);
+
+  /** Set/Get number of iterations for each pyramid level for low-dim transforms.
+   * Low dimensionality transforms are Translation, Rigid, Similarity, and Affine. */
+  itkSetMacro(AffineIterations, std::vector<unsigned int>);
+  itkGetConstReferenceMacro(AffineIterations, std::vector<unsigned int>);
+
+  /** Set/Get shrink factor for each pyramid level for low-dim transforms.
+   * Low dimensionality transforms are Translation, Rigid, Similarity, and Affine. */
+  itkSetMacro(ShrinkFactors, std::vector<unsigned int>);
+  itkGetConstReferenceMacro(ShrinkFactors, std::vector<unsigned int>);
+
+  /** Set/Get smoothing sigmas for each pyramid level for low-dim transforms.
+   * Low dimensionality transforms are Translation, Rigid, Similarity, and Affine. */
+  itkSetMacro(SmoothingSigmas, std::vector<float>);
+  itkGetConstReferenceMacro(SmoothingSigmas, std::vector<float>);
 
   virtual DecoratedOutputTransformType *
   GetOutput(DataObjectPointerArraySizeType i);
@@ -196,8 +259,21 @@ protected:
   }
 
   std::string m_TypeOfTransform{ "Affine" };
+  std::string m_AffineMetric{ "Mattes" };
+  std::string m_SynMetric{ "Mattes" };
 
   ParametersValueType m_GradientStep{ 0.2 };
+  ParametersValueType m_FlowSigma{ 3.0 };
+  ParametersValueType m_TotalSigma{ 0.0 };
+  ParametersValueType m_SamplingRate{ 0.2 };
+  int                 m_NumberOfBins{ 32 };
+  int                 m_RandomSeed{ 0 };
+  bool                m_SmoothingInPhysicalUnits{ false };
+
+  std::vector<unsigned int> m_SynIterations{ 40, 20, 0 };
+  std::vector<unsigned int> m_AffineIterations{ 2100, 1200, 1200, 10 };
+  std::vector<unsigned int> m_ShrinkFactors{ 6, 4, 2, 1 };
+  std::vector<float>        m_SmoothingSigmas{ 3, 2, 1, 0 };
 
 private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
