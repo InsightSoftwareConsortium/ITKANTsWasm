@@ -25,6 +25,36 @@
 
 namespace
 {
+// convert a string in the format 20x10x5 to std::vector of values
+// adapted from ANTs/Utilities/antsCommandLineParser.h
+template <typename TValue>
+std::vector<TValue>
+ConvertVector(std::string optionString)
+{
+  // Strip whitespace at end
+  optionString.erase(optionString.find_last_not_of(" \n\r\t") + 1);
+
+  std::vector<std::string> optionElementString;
+  std::istringstream       f(optionString);
+  std::string              s;
+  while (std::getline(f, s, 'x'))
+  {
+    optionElementString.push_back(s);
+  }
+
+  std::vector<TValue> values;
+  for (std::vector<std::string>::const_iterator oESit = optionElementString.begin(); oESit != optionElementString.end();
+       ++oESit)
+  {
+    TValue            value;
+    std::stringstream ss(*oESit);
+    ss >> value;
+    values.push_back(value);
+  }
+  return values;
+}
+
+
 template <unsigned Dimension>
 int
 doTest(int argc, char * argv[])
@@ -110,6 +140,35 @@ doTest(int argc, char * argv[])
   {
     filter->SetTypeOfTransform(argv[9]);
   }
+  if (argc > 10)
+  {
+    filter->SetAffineMetric(argv[10]);
+  }
+  if (argc > 11)
+  {
+    double samplingRate = std::stod(argv[11]);
+    filter->SetSamplingRate(samplingRate);
+  }
+  if (argc > 12)
+  {
+    unsigned numberOfBins = std::stoi(argv[12]);
+    filter->SetNumberOfBins(numberOfBins);
+  }
+  if (argc > 13)
+  {
+    auto affineIterations = ConvertVector<unsigned int>(argv[13]);
+    filter->SetAffineIterations(affineIterations);
+  }
+  if (argc > 14)
+  {
+    auto shrinkFactors = ConvertVector<unsigned int>(argv[14]);
+    filter->SetShrinkFactors(shrinkFactors);
+  }
+  if (argc > 15)
+  {
+    auto smoothingSigmas = ConvertVector<float>(argv[15]);
+    filter->SetSmoothingSigmas(smoothingSigmas);
+  }
 
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
@@ -147,6 +206,8 @@ itkANTSRegistrationTest(int argc, char * argv[])
     std::cerr << " [outMovingResampledToFixedSpace] [initialTransform]";
     std::cerr << " [fixedImageMask] [movingImageMask]";
     std::cerr << " [gradientStep] [typeOfTransform]";
+    std::cerr << " [affineMetric] [samplingRate] [numberOfBins]";
+    std::cerr << " [affineIterations] [shrinkFactors] [smoothingSigmas]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
