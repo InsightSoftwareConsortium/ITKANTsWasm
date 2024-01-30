@@ -311,6 +311,11 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 
   std::string metricType = this->GetAffineMetric();
   std::transform(metricType.begin(), metricType.end(), metricType.begin(), tolower);
+  if (metricType == "jhmi")
+  {
+    metricType = "mi2"; // ANTs uses "mi" for Mattes MI, see:
+    // https://github.com/ANTsX/ANTs/blob/v2.5.1/Examples/itkantsRegistrationHelper.hxx#L145-L152
+  }
   typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType(metricType);
 
   // assign default image metric variables

@@ -131,7 +131,7 @@ public:
    * "MeanSquares": from MeanSquaresImageToImageMetricv4
    * "CC": neighborhood normalized cross correlation from ANTSNeighborhoodCorrelationImageToImageMetricv4
    * "GC": global normalized correlation from CorrelationImageToImageMetricv4
-   * "MI": mutual information from JointHistogramMutualInformationImageToImageMetricv4
+   * "JHMI": mutual information from JointHistogramMutualInformationImageToImageMetricv4
    * "Mattes" (default): Mattes mutual informatio from MattesMutualInformationImageToImageMetricv4
    */
   itkSetStringMacro(AffineMetric);
@@ -141,7 +141,7 @@ public:
    * "MeanSquares": from MeanSquaresImageToImageMetricv4
    * "CC": neighborhood normalized cross correlation from ANTSNeighborhoodCorrelationImageToImageMetricv4
    * "GC": global normalized correlation from CorrelationImageToImageMetricv4
-   * "MI": mutual information from JointHistogramMutualInformationImageToImageMetricv4
+   * "JHMI": mutual information from JointHistogramMutualInformationImageToImageMetricv4
    * "Mattes" (default): Mattes mutual informatio from MattesMutualInformationImageToImageMetricv4
    * "Demons": from DemonsImageToImageMetricv4
    */
