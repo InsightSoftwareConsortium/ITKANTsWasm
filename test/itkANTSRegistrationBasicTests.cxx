@@ -112,6 +112,8 @@ testFilter(std::string outDir)
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
   filter->SetTypeOfTransform("Rigid");
+  filter->SetSamplingRate(1.0);
+  filter->SetRandomSeed(30101983);
   auto identityTransform = itk::TranslationTransform<double, Dimension>::New();
   filter->SetInitialTransform(identityTransform.GetPointer()); // to test the feature
   filter->Update();
