@@ -79,7 +79,13 @@ testFilter(std::string outDir)
 
   // Create input masks to avoid test dependencies.
   typename LabelImageType::SizeType size;
-  size.Fill(64);
+  size.Fill(16);
+  size[0] = 64;
+  size[1] = 32;
+  // 64x32 along x and y, 16 along other dimensions (z, t, etc)
+  typename LabelImageType::SizeType shrinkRadius{ 0 };
+  shrinkRadius[0] = 20;
+  shrinkRadius[1] = 10;
   using PointType = itk::Point<double, Dimension>;
   PointType origin{ { -10.0, -5.0 } };
 
@@ -89,7 +95,7 @@ testFilter(std::string outDir)
   fixedMask->FillBuffer(0);
   fixedMask->SetOrigin(origin);
   typename LabelImageType::RegionType region = fixedMask->GetLargestPossibleRegion();
-  region.ShrinkByRadius(20);
+  region.ShrinkByRadius(shrinkRadius);
   setRegionToValue(fixedMask.GetPointer(), region, 1);
   typename FixedImageType::Pointer fixedImage = makeSDF<FixedImageType>(fixedMask.GetPointer());
   itk::WriteImage(fixedImage, outDir + "/SyntheticFixedSDF.nrrd");
@@ -101,7 +107,7 @@ testFilter(std::string outDir)
   movingMask->FillBuffer(0);
   origin[0] = 5;
   movingMask->SetOrigin(origin);
-  region.SetIndex(0, region.GetIndex(0) + 10); // shift the rectangle
+  region.SetIndex(0, region.GetIndex(0) + 5); // shift the rectangle
   setRegionToValue(movingMask.GetPointer(), region, 1);
   typename MovingImageType::Pointer movingImage = makeSDF<MovingImageType>(movingMask.GetPointer());
   itk::WriteImage(movingImage, outDir + "/SyntheticMovingSDF.nrrd");
@@ -149,8 +155,8 @@ testFilter(std::string outDir)
   // Check that the transform and the inverse are correct
   PointType zeroPoint{ { 0, 0 } };
   PointType transformedPoint = forwardTransform->TransformPoint(zeroPoint);
-  // We expect the translation of 25 along i, and 0 along j (and k) axes
-  PointType expectedPoint{ { 25, 0 } };
+  // We expect the translation of 20 along i, and 0 along j (and k) axes
+  PointType expectedPoint{ { 20, 0 } };
   for (unsigned d = 0; d < Dimension; ++d)
   {
     if (std::abs(transformedPoint[d] - expectedPoint[d]) > 0.5)
