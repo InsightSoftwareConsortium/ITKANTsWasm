@@ -337,10 +337,6 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
   typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType(metricType);
 
-  // assign default image metric variables
-  unsigned int radius = 4;
-  bool         useGradientFilter = false;
-
   typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
   typename InternalImageType::Pointer movigImage = this->CastImageToInternalType(this->GetMovingImage());
   this->UpdateProgress(0.1);
@@ -356,8 +352,8 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       1.0,
                       RegistrationHelperType::regular,
                       m_NumberOfBins,
-                      radius,
-                      useGradientFilter,
+                      m_Radius,
+                      m_UseGradientFilter,
                       false,
                       1.0,
                       50u,
