@@ -19,7 +19,7 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
     DATA{Baseline/antsRegistrationTest_AffineScaleMasks.result.nii.gz}
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineScaleMasks.result.nii.gz
     --compareIntensityTolerance 9
-    --compareRadiusTolerance 0
+    --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
   itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image

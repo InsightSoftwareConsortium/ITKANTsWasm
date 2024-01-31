@@ -24,6 +24,7 @@
 
 #include "itkCastImageFilter.h"
 #include "itkResampleImageFilter.h"
+#include "itkPrintHelper.h"
 
 namespace itk
 {
@@ -51,8 +52,26 @@ template <typename TFixedImage, typename TMovingImage, typename TParametersValue
 void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std::ostream & os, Indent indent) const
 {
+  using namespace print_helper;
   Superclass::PrintSelf(os, indent);
   os << indent << "TypeOfTransform: " << this->m_TypeOfTransform << std::endl;
+  os << indent << "AffineMetric: " << this->m_AffineMetric << std::endl;
+  os << indent << "SynMetric: " << this->m_SynMetric << std::endl;
+
+  os << indent << "GradientStep: " << this->m_GradientStep << std::endl;
+  os << indent << "FlowSigma: " << this->m_FlowSigma << std::endl;
+  os << indent << "m_TotalSigma: " << this->m_TotalSigma << std::endl;
+  os << indent << "m_SamplingRate: " << this->m_SamplingRate << std::endl;
+  os << indent << "NumberOfBins: " << this->m_NumberOfBins << std::endl;
+  os << indent << "RandomSeed: " << this->m_RandomSeed << std::endl;
+  os << indent << "SmoothingInPhysicalUnits: " << (this->m_SmoothingInPhysicalUnits ? "On" : "Off") << std::endl;
+
+  os << indent << "SynIterations: " << this->m_SynIterations << std::endl;
+  os << indent << "AffineIterations: " << this->m_AffineIterations << std::endl;
+  os << indent << "ShrinkFactors: " << this->m_ShrinkFactors << std::endl;
+  os << indent << "SmoothingSigmas: " << this->m_SmoothingSigmas << std::endl;
+
+  this->m_Helper->Print(os, indent);
 }
 
 
