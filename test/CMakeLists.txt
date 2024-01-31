@@ -272,3 +272,133 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationNoMasks
     1x1x1  # shrinkFactors
     0.1x0.1x0.1 # smoothingSigmas
   )
+
+itk_add_test(NAME antsRegistrationTest_MSEAffineRotationMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz
+    --compareIntensityTolerance 7
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 250
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSEAffineRotationMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineRotationMasks.mat}  # initial transform
+    DATA{Input/test_mask.nii.gz}  # fixedMask
+    DATA{Input/rotation.test_mask.nii.gz}  # movingMask
+    0.001  # (minimum?) StepLength
+    Affine
+    MeanSquares
+    0.10  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    1x1x1  # shrinkFactors
+    0.1x0.1x0.1 # smoothingSigmas
+  )
+
+itk_add_test(NAME antsRegistrationTest_SimilarityRotationMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_SimilarityRotationMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SimilarityRotationMasks.result.nii.gz
+    --compareIntensityTolerance 11
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SimilarityRotationMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SimilarityRotationMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
+    DATA{Input/test_mask.nii.gz}  # fixedMask
+    DATA{Input/rotation.test_mask.nii.gz}  # movingMask
+    0.001  # (minimum?) StepLength
+    Similarity
+    Mattes
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    0x0x0 # smoothingSigmas
+  )
+
+itk_add_test(NAME antsRegistrationTest_CCSimilarityRotationMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_CCSimilarityRotationMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_CCSimilarityRotationMasks.result.nii.gz
+    --compareIntensityTolerance 11
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_CCSimilarityRotationMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_CCSimilarityRotationMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
+    DATA{Input/test_mask.nii.gz}  # fixedMask
+    DATA{Input/rotation.test_mask.nii.gz}  # movingMask
+    0.001  # (minimum?) StepLength
+    Similarity
+    CC
+    0.20  # samplingRate
+    5  # radius
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    0x0x0 # smoothingSigmas
+  )
+
+itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_MSESimilarityRotationMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks.result.nii.gz
+    --compareIntensityTolerance 11
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
+    DATA{Input/test_mask.nii.gz}  # fixedMask
+    DATA{Input/rotation.test_mask.nii.gz}  # movingMask
+    0.001  # (minimum?) StepLength
+    Similarity
+    MeanSquares
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    0x0x0 # smoothingSigmas
+  )
+
+itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks_Float
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_MSESimilarityRotationMasks_Float.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks_Float.result.nii.gz
+    --compareIntensityTolerance 11
+    --compareRadiusTolerance 0
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/rotation.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks_Float.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks_Float.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks_Float.mat}  # initial transform
+    DATA{Input/test_mask.nii.gz}  # fixedMask
+    DATA{Input/rotation.test_mask.nii.gz}  # movingMask
+    0.001  # (minimum?) StepLength
+    Similarity
+    MeanSquares
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    0x0x0 # smoothingSigmas
+  )
