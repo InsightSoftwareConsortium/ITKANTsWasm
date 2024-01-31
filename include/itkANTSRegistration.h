@@ -224,6 +224,16 @@ public:
   GetOutput(DataObjectPointerArraySizeType i);
   virtual const DecoratedOutputTransformType *
   GetOutput(DataObjectPointerArraySizeType i) const;
+  virtual DecoratedOutputTransformType *
+  GetOutput()
+  {
+    return this->GetOutput(0); // return the forward transform
+  }
+  virtual const DecoratedOutputTransformType *
+  GetOutput() const
+  {
+    return this->GetOutput(0); // return the forward transform
+  }
 
 protected:
   ANTSRegistration();
