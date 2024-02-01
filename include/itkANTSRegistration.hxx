@@ -243,25 +243,16 @@ itk::ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImag
   return outputImage;
 }
 
+
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
-void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
+inline bool
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRegistration(
+  typename RegistrationHelperType::XfrmMethod xfrmMethod,
+  const InitialTransformType *                initialTransform,
+  typename InternalImageType::Pointer         fixedImage,
+  typename InternalImageType::Pointer         movingImage)
 {
-  this->AllocateOutputs();
-
-  this->UpdateProgress(0.01);
-  std::stringstream ss;
-  m_Helper->SetLogStream(ss);
-
-  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
-  if (decoratedInitialTransform != nullptr)
-  {
-    const InitialTransformType * initialTransform = decoratedInitialTransform->Get();
-    if (initialTransform != nullptr)
-    {
-      m_Helper->SetMovingInitialTransform(initialTransform);
-    }
-  }
+  m_Helper->SetMovingInitialTransform(initialTransform);
 
   typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
   if (fixedMask != nullptr)
@@ -273,13 +264,6 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   {
     m_Helper->AddMovingImageMask(movingMask);
   }
-
-  typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
-  typename InternalImageType::Pointer movingImage = this->CastImageToInternalType(this->GetMovingImage());
-
-  std::string whichTransform = this->GetTypeOfTransform();
-  std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
-  typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
 
   bool affineType = true;
   if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm)
@@ -386,34 +370,62 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
   typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType(metricType);
 
-  this->UpdateProgress(0.1);
+  m_Helper->AddMetric(currentMetric,
+                      fixedImage,
+                      movingImage,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      nullptr,
+                      0u,
+                      1.0,
+                      RegistrationHelperType::regular,
+                      m_NumberOfBins,
+                      m_Radius,
+                      m_UseGradientFilter,
+                      false,
+                      1.0,
+                      50u,
+                      1.1,
+                      false,
+                      m_SamplingRate,
+                      std::sqrt(5),
+                      std::sqrt(5));
+  int retVal = m_Helper->DoRegistration();
+  return retVal == EXIT_SUCCESS;
+}
 
-  int retVal;
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
+{
+  this->AllocateOutputs();
+
+  this->UpdateProgress(0.01);
+  std::stringstream ss;
+  m_Helper->SetLogStream(ss);
+
+  const InitialTransformType *          initialTransform = nullptr;
+  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
+  if (decoratedInitialTransform != nullptr)
+  {
+    initialTransform = decoratedInitialTransform->Get();
+  }
+
+  typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
+  typename InternalImageType::Pointer movingImage = this->CastImageToInternalType(this->GetMovingImage());
+
+  std::string whichTransform = this->GetTypeOfTransform();
+  std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
+  typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
+
   if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm)
   {
-    m_Helper->AddMetric(currentMetric,
-                        fixedImage,
-                        movingImage,
-                        nullptr,
-                        nullptr,
-                        nullptr,
-                        nullptr,
-                        0u,
-                        1.0,
-                        RegistrationHelperType::regular,
-                        m_NumberOfBins,
-                        m_Radius,
-                        m_UseGradientFilter,
-                        false,
-                        1.0,
-                        50u,
-                        1.1,
-                        false,
-                        m_SamplingRate,
-                        std::sqrt(5),
-                        std::sqrt(5));
-
-    retVal = m_Helper->DoRegistration();
+    if (!SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage))
+    {
+      itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
+    }
     this->UpdateProgress(0.95);
   }
   else
@@ -422,13 +434,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
   }
 
-  if (retVal != EXIT_SUCCESS)
-  {
-    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
-  }
-
   typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
   this->SetForwardTransform(forwardTransform);
+  // TODO: if both initial and result transforms are linear, or of the same type, compose them into a single transform
 
   typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   if (forwardTransform->GetInverse(inverseTransform))

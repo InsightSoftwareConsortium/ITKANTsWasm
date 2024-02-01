@@ -261,6 +261,13 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
+  /** Returns true if registration was successful. */
+  bool
+  SingleStageRegistration(typename RegistrationHelperType::XfrmMethod xfrmMethod,
+                          const InitialTransformType *                initialTransform,
+                          typename InternalImageType::Pointer         fixedImage,
+                          typename InternalImageType::Pointer         movingImage);
+
   void
   GenerateData() override;
 
