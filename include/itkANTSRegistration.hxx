@@ -123,10 +123,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedMovi
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(this->GetMovingImage());
   resampleFilter->SetTransform(this->GetForwardTransform());
-  resampleFilter->SetSize(this->GetFixedImage()->GetLargestPossibleRegion().GetSize());
-  resampleFilter->SetOutputOrigin(this->GetFixedImage()->GetOrigin());
-  resampleFilter->SetOutputSpacing(this->GetFixedImage()->GetSpacing());
-  resampleFilter->SetOutputDirection(this->GetFixedImage()->GetDirection());
+  resampleFilter->SetOutputParametersFromImage(this->GetFixedImage());
   resampleFilter->Update();
   return resampleFilter->GetOutput();
 }
@@ -140,10 +137,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedFixe
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(this->GetFixedImage());
   resampleFilter->SetTransform(this->GetInverseTransform());
-  resampleFilter->SetSize(this->GetMovingImage()->GetLargestPossibleRegion().GetSize());
-  resampleFilter->SetOutputOrigin(this->GetMovingImage()->GetOrigin());
-  resampleFilter->SetOutputSpacing(this->GetMovingImage()->GetSpacing());
-  resampleFilter->SetOutputDirection(this->GetMovingImage()->GetDirection());
+  resampleFilter->SetOutputParametersFromImage(this->GetMovingImage());
   resampleFilter->Update();
   return resampleFilter->GetOutput();
 }
