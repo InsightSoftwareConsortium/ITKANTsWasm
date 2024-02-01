@@ -19,6 +19,7 @@
 #include "itkANTSRegistration.h"
 
 #include "itkImageFileWriter.h"
+#include "itkHDF5TransformIOFactory.h"
 #include "itkMatlabTransformIOFactory.h"
 #include "itkTxtTransformIOFactory.h"
 #include "itkTestingMacros.h"
@@ -63,6 +64,7 @@ doTest(int argc, char * argv[])
   const char * movingImageFileName = argv[2];
   const char * outTransformFileName = argv[3];
 
+  itk::HDF5TransformIOFactory::RegisterOneFactory();
   itk::MatlabTransformIOFactory::RegisterOneFactory();
   itk::TxtTransformIOFactory::RegisterOneFactory();
 
@@ -196,6 +198,7 @@ doTest(int argc, char * argv[])
 
   itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
   transformWriter->SetInput(filterOutput);
+  transformWriter->SetUseCompression(true);
   transformWriter->SetFileName(outTransformFileName);
   ITK_TRY_EXPECT_NO_EXCEPTION(transformWriter->Update());
 

@@ -418,7 +418,7 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks
   itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
-    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.h5  # output transform
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz  # moving image warped to fixed space
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}  # initial transform
     none  # fixedMask
@@ -447,7 +447,7 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_Float
   itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
-    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.h5  # output transform
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz  # moving image warped to fixed space
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks_Float.mat}  # initial transform
     none  # fixedMask
