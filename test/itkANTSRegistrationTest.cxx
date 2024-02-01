@@ -151,8 +151,9 @@ doTest(int argc, char * argv[])
   }
   if (argc > 12)
   {
-    unsigned numberOfBins = std::stoi(argv[12]);
-    filter->SetNumberOfBins(numberOfBins);
+    unsigned param12 = std::stoi(argv[12]);
+    filter->SetNumberOfBins(param12);
+    filter->SetRadius(param12);
   }
   if (argc > 13)
   {
@@ -168,6 +169,20 @@ doTest(int argc, char * argv[])
   {
     auto smoothingSigmas = ConvertVector<float>(argv[15]);
     filter->SetSmoothingSigmas(smoothingSigmas);
+  }
+  if (argc > 16)
+  {
+    unsigned randomSeed = std::stoi(argv[16]);
+    filter->SetRandomSeed(randomSeed);
+  }
+  if (argc > 17)
+  {
+    filter->SetSynMetric(argv[17]);
+  }
+  if (argc > 18)
+  {
+    auto synIterations = ConvertVector<unsigned int>(argv[18]);
+    filter->SetSynIterations(synIterations);
   }
 
   filter->SetFixedImage(fixedImage);
@@ -206,8 +221,9 @@ itkANTSRegistrationTest(int argc, char * argv[])
     std::cerr << " [outMovingResampledToFixedSpace] [initialTransform]";
     std::cerr << " [fixedImageMask] [movingImageMask]";
     std::cerr << " [gradientStep] [typeOfTransform]";
-    std::cerr << " [affineMetric] [samplingRate] [numberOfBins]";
+    std::cerr << " [affineMetric] [samplingRate] [numberOfBins/ccRadius]";
     std::cerr << " [affineIterations] [shrinkFactors] [smoothingSigmas]";
+    std::cerr << " [randomSeed] [synMetric] [synIterations]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }

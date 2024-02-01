@@ -196,6 +196,14 @@ public:
   itkSetMacro(RandomSeed, int);
   itkGetMacro(RandomSeed, int);
 
+  /** Set/Get radius used by neighborhood normalized cross correlation ("CC") metric. */
+  itkSetMacro(Radius, unsigned int);
+  itkGetMacro(Radius, unsigned int);
+
+  /** Set/Get whether a smoothing filter is applied when estimating the metric gradient. */
+  itkSetMacro(UseGradientFilter, bool);
+  itkGetMacro(UseGradientFilter, bool);
+
   /** Set/Get whether smoothing parameters are expressed in physical units (typically millimeters). */
   itkSetMacro(SmoothingInPhysicalUnits, bool);
   itkGetMacro(SmoothingInPhysicalUnits, bool);
@@ -292,6 +300,8 @@ protected:
   int                 m_NumberOfBins{ 32 };
   int                 m_RandomSeed{ 0 };
   bool                m_SmoothingInPhysicalUnits{ false };
+  bool                m_UseGradientFilter{ false };
+  unsigned int        m_Radius{ 4 };
 
   std::vector<unsigned int> m_SynIterations{ 40, 20, 0 };
   std::vector<unsigned int> m_AffineIterations{ 2100, 1200, 1200, 10 };
