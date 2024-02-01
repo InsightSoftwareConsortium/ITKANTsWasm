@@ -262,7 +262,7 @@ protected:
   PrintSelf(std::ostream & os, Indent indent) const override;
 
   /** Returns true if registration was successful. */
-  bool
+  void
   SingleStageRegistration(typename RegistrationHelperType::XfrmMethod xfrmMethod,
                           const InitialTransformType *                initialTransform,
                           typename InternalImageType::Pointer         fixedImage,
@@ -317,6 +317,7 @@ protected:
 
 private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
+  std::stringstream                        m_HelperLogStream;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TFixedImage::ImageDimension == TMovingImage::ImageDimension,

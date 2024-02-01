@@ -402,3 +402,61 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks_Float
     3x2x1  # shrinkFactors
     0x0x0 # smoothingSigmas
   )
+
+itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz
+    --compareIntensityTolerance 9
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/scale.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.25  # GradientStep
+    SyNOnly
+    Mattes  # affineMetric
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    2x1x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Mattes  # synMetric
+    100x70x20  # synIterations
+  )
+
+itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_Float
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz
+    --compareIntensityTolerance 9
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/scale.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks_Float.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.25  # GradientStep
+    SyNOnly
+    Mattes  # affineMetric
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    2x1x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Mattes  # synMetric
+    100x70x20  # synIterations
+  )

@@ -245,7 +245,7 @@ itk::ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImag
 
 
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
-inline bool
+void
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRegistration(
   typename RegistrationHelperType::XfrmMethod xfrmMethod,
   const InitialTransformType *                initialTransform,
@@ -392,7 +392,10 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
                       std::sqrt(5),
                       std::sqrt(5));
   int retVal = m_Helper->DoRegistration();
-  return retVal == EXIT_SUCCESS;
+  if (retVal != EXIT_SUCCESS)
+  {
+    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << m_HelperLogStream.str());
+  }
 }
 
 
@@ -403,8 +406,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   this->AllocateOutputs();
 
   this->UpdateProgress(0.01);
-  std::stringstream ss;
-  m_Helper->SetLogStream(ss);
+  m_Helper->SetLogStream(m_HelperLogStream);
 
   const InitialTransformType *          initialTransform = nullptr;
   const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
@@ -420,19 +422,24 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
   typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
 
-  if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm)
+  if (whichTransform == "synonly")
   {
-    if (!SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage))
-    {
-      itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
-    }
-    this->UpdateProgress(0.95);
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::SyN, initialTransform, fixedImage, movingImage);
+  }
+  else if (whichTransform == "syn") // this is Affine + deformable
+  {
+    itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+  }
+  else if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm) // a plain single-stage transform
+  {
+    SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage);
   }
   else
   {
     // this is a multi-stage transform, or an unknown transform
     itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
   }
+  this->UpdateProgress(0.95);
 
   typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
   this->SetForwardTransform(forwardTransform);
