@@ -213,6 +213,11 @@ public:
   itkSetMacro(CollapseCompositeTransform, bool);
   itkGetMacro(CollapseCompositeTransform, bool);
 
+  /** Set/Get whether the resulting transform queue is reduced to just two transform, one linear and one deformable.
+   * If false (default), there are as many transforms as there are stages. */
+  itkSetMacro(MaskAllStages, bool);
+  itkGetMacro(MaskAllStages, bool);
+
   /** Set/Get number of iterations for each pyramid level for SyN transforms.
    * Shrink factors and smoothing sigmas for SyN are determined based on iterations. */
   itkSetMacro(SynIterations, std::vector<unsigned int>);
@@ -234,10 +239,10 @@ public:
   itkGetConstReferenceMacro(SmoothingSigmas, std::vector<float>);
 
   /** Set/Get the optimizer weights. When set, this allows restricting the optimization
-  * of the displacement field, translation, rigid or affine transform on a per-component basis.
-  * For example, to limit the deformation or rotation of 3-D volume to the first two dimensions,
-  * specify a weight vector of ‘(1,1,0)’ for a 3D deformation field
-  * or ‘(1,1,0,1,1,0)’ for a rigid transformation. */
+   * of the displacement field, translation, rigid or affine transform on a per-component basis.
+   * For example, to limit the deformation or rotation of 3-D volume to the first two dimensions,
+   * specify a weight vector of ‘(1,1,0)’ for a 3D deformation field
+   * or ‘(1,1,0,1,1,0)’ for a rigid transformation. */
   itkSetMacro(RestrictTransformation, std::vector<ParametersValueType>);
   itkGetConstReferenceMacro(RestrictTransformation, std::vector<ParametersValueType>);
 
@@ -279,7 +284,8 @@ protected:
   SingleStageRegistration(typename RegistrationHelperType::XfrmMethod xfrmMethod,
                           const InitialTransformType *                initialTransform,
                           typename InternalImageType::Pointer         fixedImage,
-                          typename InternalImageType::Pointer         movingImage);
+                          typename InternalImageType::Pointer         movingImage,
+                          bool                                        useMasks);
 
   void
   GenerateData() override;
@@ -323,6 +329,7 @@ protected:
   bool                m_UseGradientFilter{ false };
   unsigned int        m_Radius{ 4 };
   bool                m_CollapseCompositeTransform{ true };
+  bool                m_MaskAllStages{ false };
 
   std::vector<unsigned int> m_SynIterations{ 40, 20, 0 };
   std::vector<unsigned int> m_AffineIterations{ 2100, 1200, 1200, 10 };

@@ -252,19 +252,23 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   typename RegistrationHelperType::XfrmMethod xfrmMethod,
   const InitialTransformType *                initialTransform,
   typename InternalImageType::Pointer         fixedImage,
-  typename InternalImageType::Pointer         movingImage)
+  typename InternalImageType::Pointer         movingImage,
+  bool                                        useMasks)
 {
   m_Helper->SetMovingInitialTransform(initialTransform);
 
-  typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
-  if (fixedMask != nullptr)
+  if (useMasks)
   {
-    m_Helper->AddFixedImageMask(fixedMask);
-  }
-  typename LabelImageType::Pointer movingMask(const_cast<LabelImageType *>(this->GetMovingMask()));
-  if (movingMask != nullptr)
-  {
-    m_Helper->AddMovingImageMask(movingMask);
+    typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
+    if (fixedMask != nullptr)
+    {
+      m_Helper->AddFixedImageMask(fixedMask);
+    }
+    typename LabelImageType::Pointer movingMask(const_cast<LabelImageType *>(this->GetMovingMask()));
+    if (movingMask != nullptr)
+    {
+      m_Helper->AddMovingImageMask(movingMask);
+    }
   }
 
   bool affineType = true;
@@ -428,7 +432,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 
   if (whichTransform == "synonly")
   {
-    SingleStageRegistration(RegistrationHelperType::XfrmMethod::SyN, initialTransform, fixedImage, movingImage);
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::SyN, initialTransform, fixedImage, movingImage, true);
   }
   else if (whichTransform == "syn") // this is Affine + deformable
   {
@@ -436,12 +440,13 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
   else if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm) // a plain single-stage transform
   {
-    SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage);
+    SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage, true);
   }
   else
   {
     // this is a multi-stage transform, or an unknown transform
     itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+    // TODO: examine MaskAllStages and pass true to SingleStageRegistration in the last stage
   }
   this->UpdateProgress(0.95);
 
