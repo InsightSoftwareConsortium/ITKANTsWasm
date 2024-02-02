@@ -55,7 +55,7 @@ ConvertVector(std::string optionString)
 }
 
 
-template <unsigned Dimension>
+template <typename TPrecision, unsigned Dimension>
 int
 doTest(int argc, char * argv[])
 {
@@ -68,7 +68,7 @@ doTest(int argc, char * argv[])
 
   using ImageType = itk::Image<float, Dimension>;
   using LabelImageType = itk::Image<unsigned char, Dimension>;
-  using FilterType = itk::ANTSRegistration<ImageType, ImageType>;
+  using FilterType = itk::ANTSRegistration<ImageType, ImageType, TPrecision>;
   typename FilterType::Pointer filter = FilterType::New();
 
   typename ImageType::Pointer fixedImage;
@@ -79,10 +79,11 @@ doTest(int argc, char * argv[])
 
   if (argc > 5)
   {
-    itk::TransformFileReader::Pointer transformReader = itk::TransformFileReader::New();
+    using TransformReaderType = itk::TransformFileReaderTemplate<TPrecision>;
+    TransformReaderType::Pointer transformReader = TransformReaderType::New();
     transformReader->SetFileName(argv[5]);
     ITK_TRY_EXPECT_NO_EXCEPTION(transformReader->Update());
-    const itk::TransformFileReader::TransformListType * initialTransformList = transformReader->GetTransformList();
+    const TransformReaderType::TransformListType * initialTransformList = transformReader->GetTransformList();
     ITK_TEST_EXPECT_EQUAL(initialTransformList->size(), 1);
 
     auto firstTransform = initialTransformList->begin();
@@ -91,7 +92,7 @@ doTest(int argc, char * argv[])
     {
       if (!strcmp((*firstTransform)->GetNameOfClass(), "VersorRigid3DTransform"))
       {
-        using VersorType = itk::VersorRigid3DTransform<double>;
+        using VersorType = itk::VersorRigid3DTransform<TPrecision>;
         typename VersorType::Pointer versor = static_cast<VersorType *>((*firstTransform).GetPointer());
         versor->Print(std::cout);
         filter->SetInitialTransform(versor);
@@ -100,14 +101,14 @@ doTest(int argc, char * argv[])
     }
     if (!strcmp((*firstTransform)->GetNameOfClass(), "CompositeTransform"))
     {
-      using CompositeType = itk::CompositeTransform<double, Dimension>;
+      using CompositeType = itk::CompositeTransform<TPrecision, Dimension>;
       typename CompositeType::Pointer composite = static_cast<CompositeType *>((*firstTransform).GetPointer());
       composite->Print(std::cout);
       filter->SetInitialTransform(composite);
     }
     else if (!strcmp((*firstTransform)->GetNameOfClass(), "AffineTransform"))
     {
-      using AffineType = itk::AffineTransform<double, Dimension>;
+      using AffineType = itk::AffineTransform<TPrecision, Dimension>;
       typename AffineType::Pointer affine = static_cast<AffineType *>((*firstTransform).GetPointer());
       affine->Print(std::cout);
       filter->SetInitialTransform(affine);
@@ -210,6 +211,31 @@ doTest(int argc, char * argv[])
 } // namespace
 
 
+template <typename TPrecision>
+int
+doTest(int argc, char * argv[])
+{
+  // determine dimension
+  using ImageType = itk::Image<unsigned char, 2>;
+  auto imageReader = itk::ImageFileReader<ImageType>::New();
+  imageReader->SetFileName(argv[1]);
+  ITK_TRY_EXPECT_NO_EXCEPTION(imageReader->UpdateOutputInformation());
+  unsigned dimension = imageReader->GetImageIO()->GetNumberOfDimensions();
+
+  switch (dimension)
+  {
+    case 2:
+      return doTest<TPrecision, 2>(argc, argv);
+    case 3:
+      return doTest<TPrecision, 3>(argc, argv);
+    case 4:
+      return doTest<TPrecision, 4>(argc, argv);
+    default:
+      std::cerr << "Unsupported image dimension: " << dimension;
+      return EXIT_FAILURE;
+  }
+}
+
 int
 itkANTSRegistrationTest(int argc, char * argv[])
 {
@@ -224,27 +250,19 @@ itkANTSRegistrationTest(int argc, char * argv[])
     std::cerr << " [affineMetric] [samplingRate] [numberOfBins/ccRadius]";
     std::cerr << " [affineIterations] [shrinkFactors] [smoothingSigmas]";
     std::cerr << " [randomSeed] [synMetric] [synIterations]";
+    std::cerr << " [--float]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
 
-  // determine dimension
-  using ImageType = itk::Image<unsigned char, 2>;
-  auto imageReader = itk::ImageFileReader<ImageType>::New();
-  imageReader->SetFileName(argv[1]);
-  ITK_TRY_EXPECT_NO_EXCEPTION(imageReader->UpdateOutputInformation());
-  unsigned dimension = imageReader->GetImageIO()->GetNumberOfDimensions();
-
-  switch (dimension)
+  // TransformIOBaseTemplate does not provide a way to examine
+  // the precision of the transform file as written on disk.
+  if (argc > 19 && std::string(argv[19]) == "--float")
   {
-    case 2:
-      return doTest<2>(argc, argv);
-    case 3:
-      return doTest<3>(argc, argv);
-    case 4:
-      return doTest<4>(argc, argv);
-    default:
-      std::cerr << "Unsupported image dimension: " << dimension;
-      return EXIT_FAILURE;
+    return doTest<float>(argc, argv);
+  }
+  else
+  {
+    return doTest<double>(argc, argv);
   }
 }

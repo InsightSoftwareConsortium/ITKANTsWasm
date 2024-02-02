@@ -63,7 +63,7 @@ public:
   using DecoratedOutputTransformType = DataObjectDecorator<OutputTransformType>;
 
   /** Standard class aliases. */
-  using Self = ANTSRegistration<FixedImageType, MovingImageType>;
+  using Self = ANTSRegistration<FixedImageType, MovingImageType, ParametersValueType>;
   using Superclass = ProcessObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;

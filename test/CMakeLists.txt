@@ -401,6 +401,10 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks_Float
     25x20x5  # affineIterations
     3x2x1  # shrinkFactors
     0x0x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Mattes  # synMetric
+    100x70x20  # synIterations  
+    --float    
   )
 
 itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks
@@ -459,4 +463,5 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_Float
     0  # randomSeed (0 means do not set)
     Mattes  # synMetric
     100x70x20  # synIterations
+    --float
   )

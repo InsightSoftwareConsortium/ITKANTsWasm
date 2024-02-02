@@ -119,7 +119,8 @@ auto
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedMovingImage() const ->
   typename MovingImageType::Pointer
 {
-  using ResampleFilterType = ResampleImageFilter<MovingImageType, MovingImageType>;
+  using ResampleFilterType =
+    ResampleImageFilter<MovingImageType, MovingImageType, ParametersValueType, ParametersValueType>;
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(this->GetMovingImage());
   resampleFilter->SetTransform(this->GetForwardTransform());
@@ -133,7 +134,8 @@ auto
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedFixedImage() const ->
   typename FixedImageType::Pointer
 {
-  using ResampleFilterType = ResampleImageFilter<FixedImageType, FixedImageType>;
+  using ResampleFilterType =
+    ResampleImageFilter<FixedImageType, FixedImageType, ParametersValueType, ParametersValueType>;
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(this->GetFixedImage());
   resampleFilter->SetTransform(this->GetInverseTransform());
@@ -346,11 +348,11 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   }
 
   // match the length of the iterations vector by these defaulted parameters
-  std::vector<double> weights(iterations.size(), 1.0);
+  std::vector<ParametersValueType> weights(iterations.size(), 1.0);
   m_Helper->SetRestrictDeformationOptimizerWeights({ weights });
   std::vector<unsigned int> windows(iterations.size(), 10);
   m_Helper->SetConvergenceWindowSizes({ windows });
-  std::vector<double> thresholds(iterations.size(), 1e-6);
+  std::vector<ParametersValueType> thresholds(iterations.size(), 1e-6);
   m_Helper->SetConvergenceThresholds({ thresholds });
 
   std::string metricType;
