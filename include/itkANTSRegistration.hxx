@@ -255,6 +255,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   typename InternalImageType::Pointer         movingImage,
   bool                                        useMasks)
 {
+  m_Helper = RegistrationHelperType::New(); // a convenient way to reset the helper
+  std::stringstream helperLogStream;
+  m_Helper->SetLogStream(helperLogStream);
   m_Helper->SetMovingInitialTransform(initialTransform);
 
   if (useMasks)
@@ -402,7 +405,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   int retVal = m_Helper->DoRegistration();
   if (retVal != EXIT_SUCCESS)
   {
-    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << m_HelperLogStream.str());
+    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << helperLogStream.str());
   }
 }
 
@@ -414,7 +417,6 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   this->AllocateOutputs();
 
   this->UpdateProgress(0.01);
-  m_Helper->SetLogStream(m_HelperLogStream);
 
   const InitialTransformType *          initialTransform = nullptr;
   const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
