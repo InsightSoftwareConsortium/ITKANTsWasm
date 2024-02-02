@@ -213,8 +213,7 @@ public:
   itkSetMacro(CollapseCompositeTransform, bool);
   itkGetMacro(CollapseCompositeTransform, bool);
 
-  /** Set/Get whether the resulting transform queue is reduced to just two transform, one linear and one deformable.
-   * If false (default), there are as many transforms as there are stages. */
+  /** Set/Get whether the all the stages should use the mask, or only the last stage (default). */
   itkSetMacro(MaskAllStages, bool);
   itkGetMacro(MaskAllStages, bool);
 
