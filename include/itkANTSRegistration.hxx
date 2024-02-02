@@ -346,10 +346,12 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   {
     m_Helper->SetRegistrationRandomSeed(m_RandomSeed);
   }
+  if (!m_RestrictTransformation.empty())
+  {
+    m_Helper->SetRestrictDeformationOptimizerWeights({ m_RestrictTransformation });
+  }
 
   // match the length of the iterations vector by these defaulted parameters
-  std::vector<ParametersValueType> weights(iterations.size(), 1.0);
-  m_Helper->SetRestrictDeformationOptimizerWeights({ weights });
   std::vector<unsigned int> windows(iterations.size(), 10);
   m_Helper->SetConvergenceWindowSizes({ windows });
   std::vector<ParametersValueType> thresholds(iterations.size(), 1e-6);
@@ -444,8 +446,11 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   this->UpdateProgress(0.95);
 
   typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
+  if (m_CollapseCompositeTransform)
+  {
+    forwardTransform = m_Helper->CollapseCompositeTransform(forwardTransform);
+  }
   this->SetForwardTransform(forwardTransform);
-  // TODO: if both initial and result transforms are linear, or of the same type, compose them into a single transform
 
   typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   if (forwardTransform->GetInverse(inverseTransform))
