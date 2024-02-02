@@ -63,7 +63,7 @@ public:
   using DecoratedOutputTransformType = DataObjectDecorator<OutputTransformType>;
 
   /** Standard class aliases. */
-  using Self = ANTSRegistration<FixedImageType, MovingImageType>;
+  using Self = ANTSRegistration<FixedImageType, MovingImageType, ParametersValueType>;
   using Superclass = ProcessObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
@@ -261,6 +261,13 @@ protected:
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
 
+  /** Returns true if registration was successful. */
+  void
+  SingleStageRegistration(typename RegistrationHelperType::XfrmMethod xfrmMethod,
+                          const InitialTransformType *                initialTransform,
+                          typename InternalImageType::Pointer         fixedImage,
+                          typename InternalImageType::Pointer         movingImage);
+
   void
   GenerateData() override;
 
@@ -310,6 +317,7 @@ protected:
 
 private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
+  std::stringstream                        m_HelperLogStream;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TFixedImage::ImageDimension == TMovingImage::ImageDimension,

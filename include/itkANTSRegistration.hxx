@@ -119,14 +119,12 @@ auto
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedMovingImage() const ->
   typename MovingImageType::Pointer
 {
-  using ResampleFilterType = ResampleImageFilter<MovingImageType, MovingImageType>;
+  using ResampleFilterType =
+    ResampleImageFilter<MovingImageType, MovingImageType, ParametersValueType, ParametersValueType>;
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(this->GetMovingImage());
   resampleFilter->SetTransform(this->GetForwardTransform());
-  resampleFilter->SetSize(this->GetFixedImage()->GetLargestPossibleRegion().GetSize());
-  resampleFilter->SetOutputOrigin(this->GetFixedImage()->GetOrigin());
-  resampleFilter->SetOutputSpacing(this->GetFixedImage()->GetSpacing());
-  resampleFilter->SetOutputDirection(this->GetFixedImage()->GetDirection());
+  resampleFilter->SetOutputParametersFromImage(this->GetFixedImage());
   resampleFilter->Update();
   return resampleFilter->GetOutput();
 }
@@ -136,14 +134,12 @@ auto
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetWarpedFixedImage() const ->
   typename FixedImageType::Pointer
 {
-  using ResampleFilterType = ResampleImageFilter<FixedImageType, FixedImageType>;
+  using ResampleFilterType =
+    ResampleImageFilter<FixedImageType, FixedImageType, ParametersValueType, ParametersValueType>;
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(this->GetFixedImage());
   resampleFilter->SetTransform(this->GetInverseTransform());
-  resampleFilter->SetSize(this->GetMovingImage()->GetLargestPossibleRegion().GetSize());
-  resampleFilter->SetOutputOrigin(this->GetMovingImage()->GetOrigin());
-  resampleFilter->SetOutputSpacing(this->GetMovingImage()->GetSpacing());
-  resampleFilter->SetOutputDirection(this->GetMovingImage()->GetDirection());
+  resampleFilter->SetOutputParametersFromImage(this->GetMovingImage());
   resampleFilter->Update();
   return resampleFilter->GetOutput();
 }
@@ -249,25 +245,16 @@ itk::ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImag
   return outputImage;
 }
 
+
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 void
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRegistration(
+  typename RegistrationHelperType::XfrmMethod xfrmMethod,
+  const InitialTransformType *                initialTransform,
+  typename InternalImageType::Pointer         fixedImage,
+  typename InternalImageType::Pointer         movingImage)
 {
-  this->AllocateOutputs();
-
-  this->UpdateProgress(0.01);
-  std::stringstream ss;
-  m_Helper->SetLogStream(ss);
-
-  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
-  if (decoratedInitialTransform != nullptr)
-  {
-    const InitialTransformType * initialTransform = decoratedInitialTransform->Get();
-    if (initialTransform != nullptr)
-    {
-      m_Helper->SetMovingInitialTransform(initialTransform);
-    }
-  }
+  m_Helper->SetMovingInitialTransform(initialTransform);
 
   typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
   if (fixedMask != nullptr)
@@ -280,38 +267,78 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     m_Helper->AddMovingImageMask(movingMask);
   }
 
-  std::string whichTransform = this->GetTypeOfTransform();
-  std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
-  typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
-
-  switch (xfrmMethod)
+  bool affineType = true;
+  if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm)
   {
-    case RegistrationHelperType::Affine: {
-      m_Helper->AddAffineTransform(m_GradientStep);
+    switch (xfrmMethod)
+    {
+      case RegistrationHelperType::Affine: {
+        m_Helper->AddAffineTransform(m_GradientStep);
+      }
+      break;
+      case RegistrationHelperType::Rigid: {
+        m_Helper->AddRigidTransform(m_GradientStep);
+      }
+      break;
+      case RegistrationHelperType::CompositeAffine: {
+        m_Helper->AddCompositeAffineTransform(m_GradientStep);
+      }
+      break;
+      case RegistrationHelperType::Similarity: {
+        m_Helper->AddSimilarityTransform(m_GradientStep);
+      }
+      break;
+      case RegistrationHelperType::Translation: {
+        m_Helper->AddTranslationTransform(m_GradientStep);
+      }
+      break;
+      case RegistrationHelperType::GaussianDisplacementField: {
+        m_Helper->AddGaussianDisplacementFieldTransform(m_GradientStep, m_FlowSigma, m_TotalSigma);
+        affineType = false;
+      }
+      break;
+      case RegistrationHelperType::SyN: {
+        m_Helper->AddSyNTransform(m_GradientStep, m_FlowSigma, m_TotalSigma);
+        affineType = false;
+      }
+      break;
+      case RegistrationHelperType::TimeVaryingVelocityField: {
+        m_Helper->AddTimeVaryingVelocityFieldTransform(
+          m_GradientStep, 4, m_FlowSigma, 0.0, m_TotalSigma, 0.0); // TODO:expose time-related parameters
+        affineType = false;
+      }
+      break;
+      // BSpline is not available in ANTsPy, but is easy to support here
+      case RegistrationHelperType::BSpline: {
+        auto meshSizeAtBaseLevel =
+          m_Helper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, 50, 3); // TODO: expose grid spacing?
+        m_Helper->AddBSplineTransform(m_GradientStep, meshSizeAtBaseLevel);
+        affineType = false;
+      }
+      // These are not available in ANTsPy, so we don't support them either
+      case RegistrationHelperType::BSplineDisplacementField:
+      case RegistrationHelperType::BSplineSyN:
+      case RegistrationHelperType::TimeVaryingBSplineVelocityField:
+      case RegistrationHelperType::Exponential:
+      case RegistrationHelperType::BSplineExponential:
+        itkExceptionMacro(<< "Unsupported transform type: " << this->GetTypeOfTransform());
+      default:
+        itkExceptionMacro(<< "Transform known to ANTs helper, but not to us: " << this->GetTypeOfTransform());
     }
-    break;
-    case RegistrationHelperType::Rigid: {
-      m_Helper->AddRigidTransform(m_GradientStep);
-    }
-    break;
-    case RegistrationHelperType::CompositeAffine: {
-      m_Helper->AddCompositeAffineTransform(m_GradientStep);
-    }
-    break;
-    case RegistrationHelperType::Similarity: {
-      m_Helper->AddSimilarityTransform(m_GradientStep);
-    }
-    break;
-    case RegistrationHelperType::Translation: {
-      m_Helper->AddTranslationTransform(m_GradientStep);
-    }
-    break;
-    default:
-      itkExceptionMacro(<< "Unsupported transform type: " << this->GetTypeOfTransform());
+  }
+
+  std::vector<unsigned int> iterations;
+  if (affineType)
+  {
+    iterations = m_AffineIterations;
+  }
+  else
+  {
+    iterations = m_SynIterations;
   }
 
   // set the vector-vector parameters
-  m_Helper->SetIterations({ m_AffineIterations });
+  m_Helper->SetIterations({ iterations });
   m_Helper->SetSmoothingSigmas({ m_SmoothingSigmas });
   m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ m_SmoothingInPhysicalUnits });
   m_Helper->SetShrinkFactors({ m_ShrinkFactors });
@@ -321,14 +348,22 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
 
   // match the length of the iterations vector by these defaulted parameters
-  std::vector<double> weights(m_AffineIterations.size(), 1.0);
+  std::vector<ParametersValueType> weights(iterations.size(), 1.0);
   m_Helper->SetRestrictDeformationOptimizerWeights({ weights });
-  std::vector<unsigned int> windows(m_AffineIterations.size(), 10);
+  std::vector<unsigned int> windows(iterations.size(), 10);
   m_Helper->SetConvergenceWindowSizes({ windows });
-  std::vector<double> thresholds(m_AffineIterations.size(), 1e-6);
+  std::vector<ParametersValueType> thresholds(iterations.size(), 1e-6);
   m_Helper->SetConvergenceThresholds({ thresholds });
 
-  std::string metricType = this->GetAffineMetric();
+  std::string metricType;
+  if (affineType)
+  {
+    metricType = this->GetAffineMetric();
+  }
+  else
+  {
+    metricType = this->GetSynMetric();
+  }
   std::transform(metricType.begin(), metricType.end(), metricType.begin(), tolower);
   if (metricType == "jhmi")
   {
@@ -337,13 +372,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
   typename RegistrationHelperType::MetricEnumeration currentMetric = m_Helper->StringToMetricType(metricType);
 
-  typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
-  typename InternalImageType::Pointer movigImage = this->CastImageToInternalType(this->GetMovingImage());
-  this->UpdateProgress(0.1);
-
   m_Helper->AddMetric(currentMetric,
                       fixedImage,
-                      movigImage,
+                      movingImage,
                       nullptr,
                       nullptr,
                       nullptr,
@@ -362,21 +393,68 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
                       m_SamplingRate,
                       std::sqrt(5),
                       std::sqrt(5));
-
   int retVal = m_Helper->DoRegistration();
-  this->UpdateProgress(0.95);
   if (retVal != EXIT_SUCCESS)
   {
-    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << ss.str());
+    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << m_HelperLogStream.str());
   }
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData()
+{
+  this->AllocateOutputs();
+
+  this->UpdateProgress(0.01);
+  m_Helper->SetLogStream(m_HelperLogStream);
+
+  const InitialTransformType *          initialTransform = nullptr;
+  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
+  if (decoratedInitialTransform != nullptr)
+  {
+    initialTransform = decoratedInitialTransform->Get();
+  }
+
+  typename InternalImageType::Pointer fixedImage = this->CastImageToInternalType(this->GetFixedImage());
+  typename InternalImageType::Pointer movingImage = this->CastImageToInternalType(this->GetMovingImage());
+
+  std::string whichTransform = this->GetTypeOfTransform();
+  std::transform(whichTransform.begin(), whichTransform.end(), whichTransform.begin(), tolower);
+  typename RegistrationHelperType::XfrmMethod xfrmMethod = m_Helper->StringToXfrmMethod(whichTransform);
+
+  if (whichTransform == "synonly")
+  {
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::SyN, initialTransform, fixedImage, movingImage);
+  }
+  else if (whichTransform == "syn") // this is Affine + deformable
+  {
+    itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+  }
+  else if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm) // a plain single-stage transform
+  {
+    SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage);
+  }
+  else
+  {
+    // this is a multi-stage transform, or an unknown transform
+    itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+  }
+  this->UpdateProgress(0.95);
 
   typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
   this->SetForwardTransform(forwardTransform);
+  // TODO: if both initial and result transforms are linear, or of the same type, compose them into a single transform
 
   typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   if (forwardTransform->GetInverse(inverseTransform))
   {
     this->SetInverseTransform(inverseTransform);
+  }
+  else
+  {
+    this->SetInverseTransform(nullptr);
   }
 
   this->UpdateProgress(1.0);

@@ -29,7 +29,7 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/scale.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     Mattes
     0.10  # samplingRate
@@ -55,7 +55,7 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleNoMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}  # initial transform
     none  # fixedMask
     none  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     Mattes
     0.10  # samplingRate
@@ -81,7 +81,7 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineRotationMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     Mattes
     0.10  # samplingRate
@@ -107,7 +107,7 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationNoMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineRotationNoMasks.mat}  # initial transform
     none  # fixedMask
     none  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     Mattes
     0.10  # samplingRate
@@ -133,7 +133,7 @@ itk_add_test(NAME antsRegistrationTest_AffineTranslationMasks
     DATA{Input/Initializer_antsRegistrationTest_AffineTranslationMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/translation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     MeanSquares
     0.10  # samplingRate
@@ -159,7 +159,7 @@ itk_add_test(NAME antsRegistrationTest_AffineTranslationNoMasks
     DATA{Input/Initializer_antsRegistrationTest_AffineTranslationMasks.mat}  # initial transform
     none  # fixedMask
     none  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     MeanSquares
     0.10  # samplingRate
@@ -185,7 +185,7 @@ itk_add_test(NAME antsRegistrationTest_RigidAnisotropicMasks
     DATA{Input/Initializer_antsRegistrationTest_RigidAnisotropicMasks.mat}  # initial transform
     none  # fixedMask
     none  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Rigid
     Mattes
     0.20  # samplingRate
@@ -211,7 +211,7 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationHeadMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationHeadMasks.mat}  # initial transform
     none  # fixedMask
     none  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Rigid
     Mattes
     0.20  # samplingRate
@@ -237,7 +237,7 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationHeadMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Rigid
     Mattes
     0.20  # samplingRate
@@ -263,7 +263,7 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationNoMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
     none  # fixedMask
     none  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Rigid
     Mattes
     0.20  # samplingRate
@@ -289,7 +289,7 @@ itk_add_test(NAME antsRegistrationTest_MSEAffineRotationMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_AffineRotationMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Affine
     MeanSquares
     0.10  # samplingRate
@@ -315,7 +315,7 @@ itk_add_test(NAME antsRegistrationTest_SimilarityRotationMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Similarity
     Mattes
     0.20  # samplingRate
@@ -341,7 +341,7 @@ itk_add_test(NAME antsRegistrationTest_CCSimilarityRotationMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Similarity
     CC
     0.20  # samplingRate
@@ -367,7 +367,7 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Similarity
     MeanSquares
     0.20  # samplingRate
@@ -393,7 +393,7 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks_Float
     DATA{Input/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks_Float.mat}  # initial transform
     DATA{Input/test_mask.nii.gz}  # fixedMask
     DATA{Input/rotation.test_mask.nii.gz}  # movingMask
-    0.001  # (minimum?) StepLength
+    0.001  # GradientStep
     Similarity
     MeanSquares
     0.20  # samplingRate
@@ -401,4 +401,67 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks_Float
     25x20x5  # affineIterations
     3x2x1  # shrinkFactors
     0x0x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Mattes  # synMetric
+    100x70x20  # synIterations  
+    --float    
+  )
+
+itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz
+    --compareIntensityTolerance 9
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/scale.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.h5  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.25  # GradientStep
+    SyNOnly
+    Mattes  # affineMetric
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    2x1x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Mattes  # synMetric
+    100x70x20  # synIterations
+  )
+
+itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_Float
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz
+    --compareIntensityTolerance 9
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/scale.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.h5  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks_Float.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.25  # GradientStep
+    SyNOnly
+    Mattes  # affineMetric
+    0.20  # samplingRate
+    200  # numberOfBins
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    2x1x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Mattes  # synMetric
+    100x70x20  # synIterations
+    --float
   )

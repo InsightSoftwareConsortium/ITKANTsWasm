@@ -19,6 +19,7 @@ itk_module(ANTsWasm
     ITKTestKernel
     ITKMetaIO
     ITKIONIFTI
+    ITKIOTransformHDF5
     ITKIOTransformMatlab
     ITKIOTransformInsightLegacy
     ITKDistanceMap
