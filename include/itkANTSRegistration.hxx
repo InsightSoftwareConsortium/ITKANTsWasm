@@ -65,11 +65,17 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std
   os << indent << "NumberOfBins: " << this->m_NumberOfBins << std::endl;
   os << indent << "RandomSeed: " << this->m_RandomSeed << std::endl;
   os << indent << "SmoothingInPhysicalUnits: " << (this->m_SmoothingInPhysicalUnits ? "On" : "Off") << std::endl;
+  os << indent << "UseGradientFilter: " << (this->m_UseGradientFilter ? "On" : "Off") << std::endl;
+  os << indent << "Radius: " << this->m_Radius << std::endl;
+  os << indent << "CollapseCompositeTransform: " << (this->m_CollapseCompositeTransform ? "On" : "Off") << std::endl;
+  os << indent << "MaskAllStages: " << (this->m_MaskAllStages ? "On" : "Off") << std::endl;
 
   os << indent << "SynIterations: " << this->m_SynIterations << std::endl;
   os << indent << "AffineIterations: " << this->m_AffineIterations << std::endl;
   os << indent << "ShrinkFactors: " << this->m_ShrinkFactors << std::endl;
   os << indent << "SmoothingSigmas: " << this->m_SmoothingSigmas << std::endl;
+
+  os << indent << "RestrictTransformation: " << this->m_RestrictTransformation << std::endl;
 
   this->m_Helper->Print(os, indent);
 }
