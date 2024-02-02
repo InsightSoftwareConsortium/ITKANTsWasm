@@ -82,10 +82,10 @@ doTest(int argc, char * argv[])
   if (argc > 5)
   {
     using TransformReaderType = itk::TransformFileReaderTemplate<TPrecision>;
-    TransformReaderType::Pointer transformReader = TransformReaderType::New();
+    typename TransformReaderType::Pointer transformReader = TransformReaderType::New();
     transformReader->SetFileName(argv[5]);
     ITK_TRY_EXPECT_NO_EXCEPTION(transformReader->Update());
-    const TransformReaderType::TransformListType * initialTransformList = transformReader->GetTransformList();
+    const typename TransformReaderType::TransformListType * initialTransformList = transformReader->GetTransformList();
     ITK_TEST_EXPECT_EQUAL(initialTransformList->size(), 1);
 
     auto firstTransform = initialTransformList->begin();
