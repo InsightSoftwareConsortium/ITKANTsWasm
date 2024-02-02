@@ -285,7 +285,8 @@ protected:
                           const InitialTransformType *                initialTransform,
                           typename InternalImageType::Pointer         fixedImage,
                           typename InternalImageType::Pointer         movingImage,
-                          bool                                        useMasks);
+                          bool                                        useMasks,
+                          unsigned                                    nTimeSteps = 4);
 
   void
   GenerateData() override;
