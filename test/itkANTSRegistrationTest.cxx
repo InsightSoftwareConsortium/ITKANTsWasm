@@ -187,6 +187,14 @@ doTest(int argc, char * argv[])
     auto synIterations = ConvertVector<unsigned int>(argv[18]);
     filter->SetSynIterations(synIterations);
   }
+  if (argc > 20)
+  {
+    filter->SetCollapseCompositeTransform(std::stoi(argv[20]));
+  }
+  if (argc > 21)
+  {
+    filter->SetMaskAllStages(std::stoi(argv[21]));
+  }
 
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
@@ -253,7 +261,7 @@ itkANTSRegistrationTest(int argc, char * argv[])
     std::cerr << " [affineMetric] [samplingRate] [numberOfBins/ccRadius]";
     std::cerr << " [affineIterations] [shrinkFactors] [smoothingSigmas]";
     std::cerr << " [randomSeed] [synMetric] [synIterations]";
-    std::cerr << " [--float]";
+    std::cerr << " [--float] [collapseTransforms] [maskAllStages]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }

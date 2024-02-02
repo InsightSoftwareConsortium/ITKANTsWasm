@@ -438,7 +438,12 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   }
   else if (whichTransform == "syn") // this is Affine + deformable
   {
-    itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, initialTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.15);
+    typename OutputTransformType::Pointer intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::SyN, intermediateTransform, fixedImage, movingImage, true);
   }
   else if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm) // a plain single-stage transform
   {
@@ -448,7 +453,6 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   {
     // this is a multi-stage transform, or an unknown transform
     itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
-    // TODO: examine MaskAllStages and pass true to SingleStageRegistration in the last stage
   }
   this->UpdateProgress(0.95);
 
