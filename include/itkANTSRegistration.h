@@ -208,6 +208,15 @@ public:
   itkSetMacro(SmoothingInPhysicalUnits, bool);
   itkGetMacro(SmoothingInPhysicalUnits, bool);
 
+  /** Set/Get whether the resulting transform queue is reduced to just two transform, one linear and one deformable.
+   * If false (default), there are as many transforms as there are stages. */
+  itkSetMacro(CollapseCompositeTransform, bool);
+  itkGetMacro(CollapseCompositeTransform, bool);
+
+  /** Set/Get whether the all the stages should use the mask, or only the last stage (default). */
+  itkSetMacro(MaskAllStages, bool);
+  itkGetMacro(MaskAllStages, bool);
+
   /** Set/Get number of iterations for each pyramid level for SyN transforms.
    * Shrink factors and smoothing sigmas for SyN are determined based on iterations. */
   itkSetMacro(SynIterations, std::vector<unsigned int>);
@@ -227,6 +236,14 @@ public:
    * Low dimensionality transforms are Translation, Rigid, Similarity, and Affine. */
   itkSetMacro(SmoothingSigmas, std::vector<float>);
   itkGetConstReferenceMacro(SmoothingSigmas, std::vector<float>);
+
+  /** Set/Get the optimizer weights. When set, this allows restricting the optimization
+   * of the displacement field, translation, rigid or affine transform on a per-component basis.
+   * For example, to limit the deformation or rotation of 3-D volume to the first two dimensions,
+   * specify a weight vector of ‘(1,1,0)’ for a 3D deformation field
+   * or ‘(1,1,0,1,1,0)’ for a rigid transformation. */
+  itkSetMacro(RestrictTransformation, std::vector<ParametersValueType>);
+  itkGetConstReferenceMacro(RestrictTransformation, std::vector<ParametersValueType>);
 
   virtual DecoratedOutputTransformType *
   GetOutput(DataObjectPointerArraySizeType i);
@@ -266,7 +283,9 @@ protected:
   SingleStageRegistration(typename RegistrationHelperType::XfrmMethod xfrmMethod,
                           const InitialTransformType *                initialTransform,
                           typename InternalImageType::Pointer         fixedImage,
-                          typename InternalImageType::Pointer         movingImage);
+                          typename InternalImageType::Pointer         movingImage,
+                          bool                                        useMasks,
+                          unsigned                                    nTimeSteps = 4);
 
   void
   GenerateData() override;
@@ -309,15 +328,18 @@ protected:
   bool                m_SmoothingInPhysicalUnits{ false };
   bool                m_UseGradientFilter{ false };
   unsigned int        m_Radius{ 4 };
+  bool                m_CollapseCompositeTransform{ true };
+  bool                m_MaskAllStages{ false };
 
   std::vector<unsigned int> m_SynIterations{ 40, 20, 0 };
   std::vector<unsigned int> m_AffineIterations{ 2100, 1200, 1200, 10 };
   std::vector<unsigned int> m_ShrinkFactors{ 6, 4, 2, 1 };
   std::vector<float>        m_SmoothingSigmas{ 3, 2, 1, 0 };
 
+  std::vector<ParametersValueType> m_RestrictTransformation;
+
 private:
   typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
-  std::stringstream                        m_HelperLogStream;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TFixedImage::ImageDimension == TMovingImage::ImageDimension,

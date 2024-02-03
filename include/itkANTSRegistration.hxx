@@ -65,11 +65,17 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std
   os << indent << "NumberOfBins: " << this->m_NumberOfBins << std::endl;
   os << indent << "RandomSeed: " << this->m_RandomSeed << std::endl;
   os << indent << "SmoothingInPhysicalUnits: " << (this->m_SmoothingInPhysicalUnits ? "On" : "Off") << std::endl;
+  os << indent << "UseGradientFilter: " << (this->m_UseGradientFilter ? "On" : "Off") << std::endl;
+  os << indent << "Radius: " << this->m_Radius << std::endl;
+  os << indent << "CollapseCompositeTransform: " << (this->m_CollapseCompositeTransform ? "On" : "Off") << std::endl;
+  os << indent << "MaskAllStages: " << (this->m_MaskAllStages ? "On" : "Off") << std::endl;
 
   os << indent << "SynIterations: " << this->m_SynIterations << std::endl;
   os << indent << "AffineIterations: " << this->m_AffineIterations << std::endl;
   os << indent << "ShrinkFactors: " << this->m_ShrinkFactors << std::endl;
   os << indent << "SmoothingSigmas: " << this->m_SmoothingSigmas << std::endl;
+
+  os << indent << "RestrictTransformation: " << this->m_RestrictTransformation << std::endl;
 
   this->m_Helper->Print(os, indent);
 }
@@ -252,19 +258,27 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   typename RegistrationHelperType::XfrmMethod xfrmMethod,
   const InitialTransformType *                initialTransform,
   typename InternalImageType::Pointer         fixedImage,
-  typename InternalImageType::Pointer         movingImage)
+  typename InternalImageType::Pointer         movingImage,
+  bool                                        useMasks,
+  unsigned                                    nTimeSteps)
 {
+  m_Helper = RegistrationHelperType::New(); // a convenient way to reset the helper
+  std::stringstream helperLogStream;
+  m_Helper->SetLogStream(helperLogStream);
   m_Helper->SetMovingInitialTransform(initialTransform);
 
-  typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
-  if (fixedMask != nullptr)
+  if (useMasks)
   {
-    m_Helper->AddFixedImageMask(fixedMask);
-  }
-  typename LabelImageType::Pointer movingMask(const_cast<LabelImageType *>(this->GetMovingMask()));
-  if (movingMask != nullptr)
-  {
-    m_Helper->AddMovingImageMask(movingMask);
+    typename LabelImageType::Pointer fixedMask(const_cast<LabelImageType *>(this->GetFixedMask()));
+    if (fixedMask != nullptr)
+    {
+      m_Helper->AddFixedImageMask(fixedMask);
+    }
+    typename LabelImageType::Pointer movingMask(const_cast<LabelImageType *>(this->GetMovingMask()));
+    if (movingMask != nullptr)
+    {
+      m_Helper->AddMovingImageMask(movingMask);
+    }
   }
 
   bool affineType = true;
@@ -303,8 +317,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
       }
       break;
       case RegistrationHelperType::TimeVaryingVelocityField: {
-        m_Helper->AddTimeVaryingVelocityFieldTransform(
-          m_GradientStep, 4, m_FlowSigma, 0.0, m_TotalSigma, 0.0); // TODO:expose time-related parameters
+        m_Helper->AddTimeVaryingVelocityFieldTransform(m_GradientStep, nTimeSteps, m_FlowSigma, 0.0, m_TotalSigma, 0.0);
         affineType = false;
       }
       break;
@@ -346,10 +359,12 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   {
     m_Helper->SetRegistrationRandomSeed(m_RandomSeed);
   }
+  if (!m_RestrictTransformation.empty())
+  {
+    m_Helper->SetRestrictDeformationOptimizerWeights({ m_RestrictTransformation });
+  }
 
   // match the length of the iterations vector by these defaulted parameters
-  std::vector<ParametersValueType> weights(iterations.size(), 1.0);
-  m_Helper->SetRestrictDeformationOptimizerWeights({ weights });
   std::vector<unsigned int> windows(iterations.size(), 10);
   m_Helper->SetConvergenceWindowSizes({ windows });
   std::vector<ParametersValueType> thresholds(iterations.size(), 1e-6);
@@ -396,7 +411,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   int retVal = m_Helper->DoRegistration();
   if (retVal != EXIT_SUCCESS)
   {
-    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << m_HelperLogStream.str());
+    itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << helperLogStream.str());
   }
 }
 
@@ -408,7 +423,6 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   this->AllocateOutputs();
 
   this->UpdateProgress(0.01);
-  m_Helper->SetLogStream(m_HelperLogStream);
 
   const InitialTransformType *          initialTransform = nullptr;
   const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
@@ -426,26 +440,107 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 
   if (whichTransform == "synonly")
   {
-    SingleStageRegistration(RegistrationHelperType::XfrmMethod::SyN, initialTransform, fixedImage, movingImage);
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::SyN, initialTransform, fixedImage, movingImage, true);
   }
   else if (whichTransform == "syn") // this is Affine + deformable
   {
-    itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, initialTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.15);
+    typename OutputTransformType::Pointer intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::SyN, intermediateTransform, fixedImage, movingImage, true);
   }
   else if (xfrmMethod != RegistrationHelperType::XfrmMethod::UnknownXfrm) // a plain single-stage transform
   {
-    SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage);
+    SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage, true);
+  }
+  else if (whichTransform == "trsaa")
+  {
+    auto originalGradientStep = m_GradientStep;
+    m_GradientStep = 1.0;
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Translation, initialTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.15);
+    typename OutputTransformType::Pointer intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Rigid, intermediateTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.30);
+    intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Similarity, intermediateTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.45);
+    intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, intermediateTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.65);
+    intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, intermediateTransform, fixedImage, movingImage, true);
+    m_GradientStep = originalGradientStep;
+  }
+  else if (whichTransform == "elastic")
+  {
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, initialTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.15);
+    typename OutputTransformType::Pointer intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::GaussianDisplacementField,
+                            intermediateTransform,
+                            fixedImage,
+                            movingImage,
+                            true);
+  }
+  else if (whichTransform == "synra")
+  {
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Rigid, initialTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.15);
+    typename OutputTransformType::Pointer intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, intermediateTransform, fixedImage, movingImage, m_MaskAllStages);
+    this->UpdateProgress(0.30);
+    intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::SyN, intermediateTransform, fixedImage, movingImage, true);
+  }
+  else if (whichTransform.substr(0, 3) == "tv[") // TV[n]
+  {
+    unsigned tsl = whichTransform.size(); // transform string length
+    if (tsl < 5 || whichTransform[tsl - 1] != ']')
+    {
+      itkExceptionMacro(<< "Invalid transform type: " << whichTransform
+                        << "\nExpected format: TV[n]\nwhere n is number of time points");
+    }
+    unsigned timePoints = 4;
+    try
+    {
+      timePoints = std::stoul(whichTransform.substr(3, tsl - 4));
+    }
+    catch (const std::exception & err)
+    {
+      itkExceptionMacro(<< "Cannot interpret: '" << whichTransform.substr(3, tsl - 4)
+                        << "' as a number. Inner exception: " << err.what());
+    }
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::TimeVaryingVelocityField,
+                            initialTransform,
+                            fixedImage,
+                            movingImage,
+                            true,
+                            timePoints);
   }
   else
   {
-    // this is a multi-stage transform, or an unknown transform
-    itkExceptionMacro(<< "Not yet supported transform type: " << this->GetTypeOfTransform());
+    itkExceptionMacro(<< "Unsupported transform type: " << this->GetTypeOfTransform());
   }
   this->UpdateProgress(0.95);
 
   typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
+  if (m_CollapseCompositeTransform)
+  {
+    forwardTransform = m_Helper->CollapseCompositeTransform(forwardTransform);
+  }
   this->SetForwardTransform(forwardTransform);
-  // TODO: if both initial and result transforms are linear, or of the same type, compose them into a single transform
 
   typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   if (forwardTransform->GetInverse(inverseTransform))
