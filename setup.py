@@ -12,7 +12,7 @@ except ImportError:
 
 setup(
     name='itk-ants',
-    version='0.2.0',
+    version='0.3.0',
     author='Insight Software Consortium',
     author_email='itk+community@discourse.itk.org',
     packages=['itk'],
