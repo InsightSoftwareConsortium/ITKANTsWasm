@@ -50,7 +50,7 @@ makeSDF(TInputImage * mask)
   distanceMapFilter->SetInput(mask);
   distanceMapFilter->SetSquaredDistance(false);
   distanceMapFilter->SetUseImageSpacing(true);
-  distanceMapFilter->SetInsideIsPositive(false);
+  distanceMapFilter->SetInsideIsPositive(true);
   distanceMapFilter->Update();
   if constexpr (std::is_same_v<FloatImage, TResultImage>)
   {
@@ -86,11 +86,11 @@ testFilter(std::string outDir)
   typename LabelImageType::Pointer fixedMask = LabelImageType::New();
   fixedMask->SetRegions(size);
   fixedMask->Allocate();
-  fixedMask->FillBuffer(1);
+  fixedMask->FillBuffer(0);
   fixedMask->SetOrigin(origin);
   typename LabelImageType::RegionType region = fixedMask->GetLargestPossibleRegion();
   region.ShrinkByRadius(20);
-  setRegionToValue(fixedMask.GetPointer(), region, 0);
+  setRegionToValue(fixedMask.GetPointer(), region, 1);
   typename FixedImageType::Pointer fixedImage = makeSDF<FixedImageType>(fixedMask.GetPointer());
   itk::WriteImage(fixedImage, outDir + "/SyntheticFixedSDF.nrrd");
   itk::WriteImage(fixedMask, outDir + "/SyntheticFixed-label.nrrd");
@@ -98,11 +98,11 @@ testFilter(std::string outDir)
   typename LabelImageType::Pointer movingMask = LabelImageType::New();
   movingMask->SetRegions(size);
   movingMask->Allocate();
-  movingMask->FillBuffer(1);
+  movingMask->FillBuffer(0);
   origin[0] = 5;
   movingMask->SetOrigin(origin);
   region.SetIndex(0, region.GetIndex(0) + 10); // shift the rectangle
-  setRegionToValue(movingMask.GetPointer(), region, 0);
+  setRegionToValue(movingMask.GetPointer(), region, 1);
   typename MovingImageType::Pointer movingImage = makeSDF<MovingImageType>(movingMask.GetPointer());
   itk::WriteImage(movingImage, outDir + "/SyntheticMovingSDF.nrrd");
   itk::WriteImage(movingMask, outDir + "/SyntheticMoving-label.nrrd");
@@ -111,14 +111,24 @@ testFilter(std::string outDir)
 
   filter->SetFixedImage(fixedImage);
   filter->SetMovingImage(movingImage);
-  filter->SetTypeOfTransform("Rigid");
-  filter->SetSamplingRate(1.0);
+  filter->SetFixedMask(fixedMask);
+  filter->SetMovingMask(movingMask);
+  filter->SetTypeOfTransform("Translation");
+  filter->SetAffineMetric("MeanSquares");
+  filter->SetSamplingRate(0.2);
   filter->SetRandomSeed(30101983);
-  auto identityTransform = itk::TranslationTransform<double, Dimension>::New();
-  filter->SetInitialTransform(identityTransform.GetPointer()); // to test the feature
+
+  auto initialTransform = itk::TranslationTransform<double, Dimension>::New();
+  using VectorType = itk::Vector<double, Dimension>;
+  VectorType translation{ { 30.0, -5.0 } };
+  initialTransform->Translate(translation);
+  filter->SetInitialTransform(initialTransform.GetPointer());
+
+  filter->DebugOn();
   filter->Update();
 
   auto forwardTransform = filter->GetForwardTransform();
+  ITK_TEST_EXPECT_EQUAL(forwardTransform->GetNumberOfTransforms(), 1);
   itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
   transformWriter->SetFileName(outDir + "/SyntheticForwardTransform.tfm");
   transformWriter->SetInput(forwardTransform);
@@ -191,7 +201,11 @@ itkANTSRegistrationBasicTests(int argc, char * argv[])
   }
 
   std::cout << "\nTesting: fixed and moving image are of the same pixel type, 3D" << std::endl;
-  return testFilter<float, float, 3>(argv[1]); // 2D test does not pass yet
+  retVal = testFilter<float, float, 3>(argv[1]); // 2D test does not pass yet
+  if (retVal != EXIT_SUCCESS)
+  {
+    return retVal;
+  }
 
   std::cout << "\nTesting: fixed and moving image are of the same pixel type, 2D" << std::endl;
   return testFilter<short, short, 2>(argv[1]);
