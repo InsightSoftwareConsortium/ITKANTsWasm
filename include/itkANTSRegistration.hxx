@@ -413,6 +413,10 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
   {
     itkExceptionMacro(<< "Registration failed. Helper's accumulated output:\n " << helperLogStream.str());
   }
+  else
+  {
+    itkDebugMacro("Registration successful. Helper's accumulated output:\n " << helperLogStream.str());
+  }
 }
 
 
