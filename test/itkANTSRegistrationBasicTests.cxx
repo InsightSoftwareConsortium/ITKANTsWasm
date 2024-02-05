@@ -115,7 +115,7 @@ testFilter(std::string outDir)
   filter->SetMovingMask(movingMask);
   filter->SetTypeOfTransform("Translation");
   filter->SetAffineMetric("MeanSquares");
-  filter->SetSamplingRate(1.0);
+  filter->SetSamplingRate(0.2);
   filter->SetRandomSeed(30101983);
 
   auto initialTransform = itk::TranslationTransform<double, Dimension>::New();
