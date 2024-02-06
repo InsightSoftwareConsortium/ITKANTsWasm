@@ -67,8 +67,11 @@ makeSDF(TInputImage * mask)
 
 template <typename FixedPixelType, typename MovingPixelType, unsigned Dimension>
 int
-testFilter(std::string outDir)
+testFilter(std::string outDir, std::string transformType)
 {
+  std::cout << "\n\n\nTesting: " << transformType << " " << Dimension << "D, ";
+  std::cout << typeid(FixedPixelType).name() << "-" << typeid(MovingPixelType).name() << std::endl;
+
   using FixedImageType = itk::Image<FixedPixelType, Dimension>;
   using MovingImageType = itk::Image<MovingPixelType, Dimension>;
   using FilterType = itk::ANTSRegistration<FixedImageType, MovingImageType>;
@@ -119,7 +122,7 @@ testFilter(std::string outDir)
   filter->SetMovingImage(movingImage);
   filter->SetFixedMask(fixedMask);
   filter->SetMovingMask(movingMask);
-  filter->SetTypeOfTransform("Translation");
+  filter->SetTypeOfTransform(transformType);
   filter->SetAffineMetric("MeanSquares");
   filter->SetSamplingRate(0.2);
   filter->SetRandomSeed(30101983);
@@ -199,20 +202,32 @@ itkANTSRegistrationBasicTests(int argc, char * argv[])
 
   itk::TxtTransformIOFactory::RegisterOneFactory();
 
-  std::cout << "\nTesting: fixed and moving image are of different pixel type, 3D" << std::endl;
-  int retVal = testFilter<float, short, 3>(argv[1]);
+  int overallSuccess = EXIT_SUCCESS;
+  int retVal = EXIT_SUCCESS;
+
+  retVal = testFilter<float, short, 3>(argv[1], "TRSAA");
   if (retVal != EXIT_SUCCESS)
   {
-    return retVal;
+    overallSuccess = retVal;
   }
 
-  std::cout << "\nTesting: fixed and moving image are of the same pixel type, 3D" << std::endl;
-  retVal = testFilter<float, float, 3>(argv[1]); // 2D test does not pass yet
+  retVal = testFilter<float, float, 3>(argv[1], "Rigid");
   if (retVal != EXIT_SUCCESS)
   {
-    return retVal;
+    overallSuccess = retVal;
   }
 
-  std::cout << "\nTesting: fixed and moving image are of the same pixel type, 2D" << std::endl;
-  return testFilter<short, short, 2>(argv[1]);
+  retVal = testFilter<short, short, 2>(argv[1], "Translation");
+  if (retVal != EXIT_SUCCESS)
+  {
+    overallSuccess = retVal;
+  }
+
+  retVal = testFilter<short, short, 4>(argv[1], "Translation");
+  if (retVal != EXIT_SUCCESS)
+  {
+    overallSuccess = retVal;
+  }
+
+  return overallSuccess;
 }
