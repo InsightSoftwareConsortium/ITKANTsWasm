@@ -352,9 +352,38 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
 
   // set the vector-vector parameters
   m_Helper->SetIterations({ iterations });
-  m_Helper->SetSmoothingSigmas({ m_SmoothingSigmas });
+  if (iterations.size() == m_SmoothingSigmas.size())
+  {
+    m_Helper->SetSmoothingSigmas({ m_SmoothingSigmas });
+  }
+  else
+  {
+    int sizeDiff = m_SmoothingSigmas.size() - iterations.size();
+    if (sizeDiff < 0)
+    {
+      using namespace print_helper;
+      itkExceptionMacro(<< "SmoothingSigmas vector: " << m_SmoothingSigmas
+                        << " is shorter than iterations: " << iterations);
+    }
+    m_Helper->SetSmoothingSigmas({ { m_SmoothingSigmas.begin() + sizeDiff, m_SmoothingSigmas.end() } });
+  }
+  if (iterations.size() == m_ShrinkFactors.size())
+  {
+    m_Helper->SetShrinkFactors({ m_ShrinkFactors });
+  }
+  else
+  {
+    int sizeDiff = m_ShrinkFactors.size() - iterations.size();
+    if (sizeDiff < 0)
+    {
+      using namespace print_helper;
+      itkExceptionMacro(<< "ShrinkFactors vector: " << m_ShrinkFactors
+                        << " is shorter than iterations: " << iterations);
+    }
+    m_Helper->SetShrinkFactors({ { m_ShrinkFactors.begin() + sizeDiff, m_ShrinkFactors.end() } });
+  }
+
   m_Helper->SetSmoothingSigmasAreInPhysicalUnits({ m_SmoothingInPhysicalUnits });
-  m_Helper->SetShrinkFactors({ m_ShrinkFactors });
   if (m_RandomSeed != 0)
   {
     m_Helper->SetRegistrationRandomSeed(m_RandomSeed);
