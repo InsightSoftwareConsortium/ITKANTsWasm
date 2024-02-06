@@ -124,6 +124,9 @@ testFilter(std::string outDir, std::string transformType)
   filter->SetMovingMask(movingMask);
   filter->SetTypeOfTransform(transformType);
   filter->SetAffineMetric("MeanSquares");
+  filter->SetSynMetric("MeanSquares");
+  filter->SetCollapseCompositeTransform(true);
+  filter->SetMaskAllStages(true);
   filter->SetSamplingRate(0.2);
   filter->SetRandomSeed(30101983);
 
@@ -137,7 +140,7 @@ testFilter(std::string outDir, std::string transformType)
   filter->Update();
 
   auto forwardTransform = filter->GetForwardTransform();
-  ITK_TEST_EXPECT_EQUAL(forwardTransform->GetNumberOfTransforms(), 1);
+
   itk::TransformFileWriter::Pointer transformWriter = itk::TransformFileWriter::New();
   transformWriter->SetFileName(outDir + "/SyntheticForwardTransform.tfm");
   transformWriter->SetInput(forwardTransform);
@@ -183,6 +186,11 @@ testFilter(std::string outDir, std::string transformType)
     }
   }
 
+  if (forwardTransform->IsLinear()) // Linear transforms should be combined into one
+  {
+    ITK_TEST_EXPECT_EQUAL(forwardTransform->GetNumberOfTransforms(), 1);
+  }
+
   return EXIT_SUCCESS;
 }
 } // namespace
@@ -217,13 +225,19 @@ itkANTSRegistrationBasicTests(int argc, char * argv[])
     overallSuccess = retVal;
   }
 
-  retVal = testFilter<short, short, 2>(argv[1], "Translation");
+  retVal = testFilter<short, short, 2>(argv[1], "Similarity");
   if (retVal != EXIT_SUCCESS)
   {
     overallSuccess = retVal;
   }
 
   retVal = testFilter<short, short, 4>(argv[1], "Translation");
+  if (retVal != EXIT_SUCCESS)
+  {
+    overallSuccess = retVal;
+  }
+
+  retVal = testFilter<short, short, 3>(argv[1], "SyNRA");
   if (retVal != EXIT_SUCCESS)
   {
     overallSuccess = retVal;
