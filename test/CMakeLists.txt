@@ -498,6 +498,38 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_2stage
     1  # maskAllStages
   )
 
+itk_add_test(NAME antsRegistration_SyNCC
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/antsRegistrationTest_SyNScaleNoMasks_Float.result.nii.gz}
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistration_SyNCC.result.nii.gz
+    --compareIntensityTolerance 9
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 1000
+  itkANTSRegistrationTest
+    DATA{Input/test.nii.gz}  # fixed image
+    DATA{Input/scale.test.nii.gz}  # moving image
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistration_SyNCC.tfm  # output transform
+    ${ITK_TEST_OUTPUT_DIR}/antsRegistration_SyNCC.result.nii.gz  # moving image warped to fixed space
+    DATA{Input/Initializer_0.05_antsRegistrationTest_AffineScaleMasks_Float.mat}  # initial transform
+    none  # fixedMask
+    none  # movingMask
+    0.25  # GradientStep
+    SyNCC
+    Irrelevant  # affineMetric
+    0.20  # samplingRate
+    4  # ccRadius
+    25x20x5  # affineIterations
+    3x2x1  # shrinkFactors
+    2x1x0 # smoothingSigmas
+    0  # randomSeed (0 means do not set)
+    Irrelevant  # synMetric
+    100x70x20  # synIterations
+    --float
+    0  # collapseTransforms
+    1  # maskAllStages
+  )
+
 itk_add_test(NAME antsRegistration_SyNRA
   COMMAND ANTsWasmTestDriver
     --compare

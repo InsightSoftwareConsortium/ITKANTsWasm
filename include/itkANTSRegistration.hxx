@@ -488,6 +488,13 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   {
     SingleStageRegistration(xfrmMethod, initialTransform, fixedImage, movingImage, true);
   }
+  else if (whichTransform == "quickrigid")
+  {
+    auto originalIterations = m_AffineIterations;
+    m_AffineIterations = { 20, 20, 0, 0 };
+    SingleStageRegistration(RegistrationHelperType::XfrmMethod::Rigid, initialTransform, fixedImage, movingImage, true);
+    m_AffineIterations = originalIterations;
+  }
   else if (whichTransform == "trsaa")
   {
     auto originalGradientStep = m_GradientStep;
@@ -536,6 +543,21 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     intermediateTransform = m_Helper->GetModifiableCompositeTransform();
     SingleStageRegistration(
       RegistrationHelperType::XfrmMethod::SyN, intermediateTransform, fixedImage, movingImage, true);
+  }
+  else if (whichTransform == "syncc")
+  {
+    std::string originalMetric = m_AffineMetric;
+    m_AffineMetric = "CC";
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::Affine, initialTransform, fixedImage, movingImage, m_MaskAllStages);
+    m_AffineMetric = originalMetric;
+    this->UpdateProgress(0.15);
+    originalMetric = m_SynMetric;
+    m_SynMetric = "CC";
+    typename OutputTransformType::Pointer intermediateTransform = m_Helper->GetModifiableCompositeTransform();
+    SingleStageRegistration(
+      RegistrationHelperType::XfrmMethod::SyN, intermediateTransform, fixedImage, movingImage, true);
+    m_SynMetric = originalMetric;
   }
   else if (whichTransform.substr(0, 3) == "tv[") // TV[n]
   {
