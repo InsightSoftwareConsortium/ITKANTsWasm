@@ -1,0 +1,9 @@
+itk_wrap_class("itk::ANTsGroupwiseRegistration" POINTER)
+  foreach(d ${ITK_WRAP_IMAGE_DIMS})
+    foreach(t ${WRAP_ITK_SCALAR})
+      itk_wrap_template("F${ITKM_I${ITKM_${t}}${d}}" "${ITKT_I${ITKM_${t}}${d}}, ${ITKT_I${ITKM_F}${d}}, float")
+      itk_wrap_template("D${ITKM_I${ITKM_${t}}${d}}" "${ITKT_I${ITKM_${t}}${d}}, ${ITKT_I${ITKM_F}${d}}, double")
+    endforeach()
+  endforeach()
+itk_end_wrap_class()
+

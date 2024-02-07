@@ -18,6 +18,7 @@ itk_module(ANTsWasm
   TEST_DEPENDS
     ITKTestKernel
     ITKMetaIO
+    ITKIONRRD
     ITKIONIFTI
     ITKIOTransformHDF5
     ITKIOTransformMatlab

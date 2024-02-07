@@ -3,6 +3,7 @@ itk_module_test()
 set(ANTsWasmTests
   itkANTSRegistrationTest.cxx
   itkANTSRegistrationBasicTests.cxx
+  itkANTsGroupwiseRegistrationTest.cxx
   )
 
 CreateTestDriver(ANTsWasm "${ANTsWasm-Test_LIBRARIES}" "${ANTsWasmTests}")
@@ -12,6 +13,12 @@ itk_add_test(NAME itkANTSRegistrationBasicTests
   COMMAND ANTsWasmTestDriver
   itkANTSRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
   )
+
+itk_add_test(NAME itkANTsGroupwiseRegistrationTest
+  COMMAND ANTsWasmTestDriver
+  itkANTsGroupwiseRegistrationTest ${CMAKE_CURRENT_LIST_DIR}/Input ${ITK_TEST_OUTPUT_DIR}
+  )
+
 
 itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
   COMMAND ANTsWasmTestDriver

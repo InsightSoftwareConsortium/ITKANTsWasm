@@ -1,0 +1,191 @@
+/*=========================================================================
+ *
+ *  Copyright NumFOCUS
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *         https://www.apache.org/licenses/LICENSE-2.0.txt
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ *
+ *=========================================================================*/
+#ifndef itkANTsGroupwiseRegistration_h
+#define itkANTsGroupwiseRegistration_h
+
+#include "itkImageToImageFilter.h"
+#include "itkANTSRegistration.h"
+
+namespace itk
+{
+
+/** \class ANTsGroupwiseRegistration
+ *
+ * \brief Group-wise image registration method parameterized according to ANTsPy.
+ *
+ * Inputs are images to be registered, and optionally initial template.
+ * Outputs are the computed template image, and forward and inverse transforms
+ * for each of the input images when registered to the template.
+ *
+ * This is similar to ANTsPy build_template function:
+ * https://github.com/ANTsX/ANTsPy/blob/master/ants/registration/build_template.py
+ *
+ * \ingroup ANTsWasm
+ * \ingroup Registration
+ *
+ */
+template <typename TImage,
+          typename TTemplateImage = ::itk::Image<float, TImage::ImageDimension>,
+          typename TParametersValueType = double>
+class ANTsGroupwiseRegistration : public ImageToImageFilter<TTemplateImage, TTemplateImage>
+{
+public:
+  ITK_DISALLOW_COPY_AND_MOVE(ANTsGroupwiseRegistration);
+
+  static constexpr unsigned int ImageDimension = TImage::ImageDimension;
+
+  using ImageType = TImage;
+  using PixelType = typename ImageType::PixelType;
+  using TemplateImageType = TTemplateImage;
+
+  using ParametersValueType = TParametersValueType;
+  using TransformType = Transform<TParametersValueType, ImageDimension, ImageDimension>;
+  using CompositeTransformType = CompositeTransform<ParametersValueType, ImageDimension>;
+  using OutputTransformType = CompositeTransformType;
+  using DecoratedOutputTransformType = DataObjectDecorator<OutputTransformType>;
+
+  /** Standard class aliases. */
+  using Self = ANTsGroupwiseRegistration<ImageType, TTemplateImage, ParametersValueType>;
+  using Superclass = ImageToImageFilter<TTemplateImage, TTemplateImage>;
+  using Pointer = SmartPointer<Self>;
+  using ConstPointer = SmartPointer<const Self>;
+
+  /** Run-time type information. */
+  itkTypeMacro(ANTsGroupwiseRegistration, ImageToImageFilter);
+
+  /** Standard New macro. */
+  itkNewMacro(Self);
+
+
+  /** Set/Get the initial template image. */
+  void
+  SetInitialTemplateImage(const TemplateImageType * initialTemplate)
+  {
+    this->SetNthInput(0, const_cast<TemplateImageType *>(initialTemplate)); // the primary input
+  }
+  const TemplateImageType * 
+  GetInitialTemplateImage()
+  {
+    return static_cast<TemplateImageType *>(this->GetInput(0)); // the primary input
+  }
+
+  /** Get the optimal template image. */
+  TemplateImageType *
+  GetTemplateImage()
+  {
+    return this->GetOutput(0); // this is just the primary output
+  }
+
+  /** Returns the transform resulting from the registration process  */
+  const OutputTransformType *
+  GetTransform(unsigned imageIndex) const
+  {
+    return nullptr;
+    // return this->GetOutput(imageIndex)->Get();
+  }
+
+  /** Set/Get the gradient step size for transform optimizers that use it. */
+  itkSetMacro(GradientStep, ParametersValueType);
+  itkGetMacro(GradientStep, ParametersValueType);
+
+  /** Set/Get smoothing for update field.
+   * This only affects transform which use a deformation field. */
+  itkSetMacro(BlendingWeight, ParametersValueType);
+  itkGetMacro(BlendingWeight, ParametersValueType);
+
+  /** Set/Get whether template update step uses the rigid component. */
+  itkSetMacro(UseNoRigid, bool);
+  itkGetMacro(UseNoRigid, bool);
+
+  /** Set/Get number of iterations for each pyramid level for SyN transforms.
+   * Shrink factors and smoothing sigmas for SyN are determined based on iterations. */
+  itkSetMacro(Iterations, unsigned int);
+  itkGetMacro(Iterations, unsigned int);
+
+  /** Set/Get the weight for each image. */
+  itkSetMacro(Weights, std::vector<ParametersValueType>);
+  itkGetConstReferenceMacro(Weights, std::vector<ParametersValueType>);
+
+  /** Set/Get the images to register. */
+  itkSetMacro(ImageList, std::vector<ImageType *>);
+  itkGetConstReferenceMacro(ImageList, std::vector<ImageType *>);
+
+  using ProcessObject::AddInput;
+  using ProcessObject::RemoveInput;
+  using ProcessObject::GetInput;
+
+protected:
+  ANTsGroupwiseRegistration();
+  ~ANTsGroupwiseRegistration() override = default;
+
+  /** Make a DataObject of the correct type to be used as the specified output. */
+  using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
+  using ProcessObject::DataObjectPointer;
+  DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+
+  using PairwiseType = ANTSRegistration<ImageType, ImageType, ParametersValueType>;
+
+  void
+  PrintSelf(std::ostream & os, Indent indent) const override;
+
+  void
+  GenerateData() override;
+
+  void
+  VerifyInputInformation() const override
+  {
+    // The images don't have to be the same size, or in the same physical spatial location.
+  }
+
+  // helper function to create the right kind of concrete transform
+  template <typename TTransform>
+  static void
+  MakeOutputTransform(SmartPointer<TTransform> & ptr)
+  {
+    ptr = TTransform::New();
+  }
+
+  /** Sets the output to the provided forward transform. */
+  void
+  SetTransform(unsigned index, const OutputTransformType * transform)
+  {
+    return this->GetOutput(index)->Set(transform);
+  }
+
+  ParametersValueType m_GradientStep{ 0.2 };
+  ParametersValueType m_BlendingWeight{ 0.75 };
+  bool                m_UseNoRigid{ true };
+  unsigned int        m_Iterations{ 3 };
+
+  std::vector<ParametersValueType> m_Weights;
+  std::vector<ImageType *>         m_ImageList;
+  typename PairwiseType::Pointer   m_PairwiseRegistration{ PairwiseType::New() };
+
+#ifdef ITK_USE_CONCEPT_CHECKING
+  static_assert(TImage::ImageDimension == TTemplateImage::ImageDimension,
+                "Template imagemust have the same dimension as the input images.");
+  static_assert(ImageDimension >= 2, "Images must be at least two-dimensional.");
+#endif
+};
+} // namespace itk
+
+#ifndef ITK_MANUAL_INSTANTIATION
+#  include "itkANTsGroupwiseRegistration.hxx"
+#endif
+
+#endif // itkANTsGroupwiseRegistration
