@@ -18,8 +18,6 @@
 #ifndef itkANTSRegistration_hxx
 #define itkANTSRegistration_hxx
 
-#include "itkANTSRegistration.h"
-
 #include <sstream>
 
 #include "itkCastImageFilter.h"
@@ -60,8 +58,8 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std
 
   os << indent << "GradientStep: " << this->m_GradientStep << std::endl;
   os << indent << "FlowSigma: " << this->m_FlowSigma << std::endl;
-  os << indent << "m_TotalSigma: " << this->m_TotalSigma << std::endl;
-  os << indent << "m_SamplingRate: " << this->m_SamplingRate << std::endl;
+  os << indent << "TotalSigma: " << this->m_TotalSigma << std::endl;
+  os << indent << "SamplingRate: " << this->m_SamplingRate << std::endl;
   os << indent << "NumberOfBins: " << this->m_NumberOfBins << std::endl;
   os << indent << "RandomSeed: " << this->m_RandomSeed << std::endl;
   os << indent << "SmoothingInPhysicalUnits: " << (this->m_SmoothingInPhysicalUnits ? "On" : "Off") << std::endl;
