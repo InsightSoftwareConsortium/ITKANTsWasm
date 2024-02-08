@@ -1,4 +1,4 @@
-#==========================================================================
+# ==========================================================================
 #
 #   Copyright NumFOCUS
 #
@@ -14,10 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 #
-#==========================================================================*/
+# ==========================================================================*/
+
+import argparse
 
 import itk
-import argparse
 
 parser = argparse.ArgumentParser(description="Register moving image to fixed image.")
 parser.add_argument("-f", "--fixed-image", required=True)
@@ -37,22 +38,17 @@ Dimension = fixed_image.GetImageDimension()
 ImageType = itk.Image[PixelType, Dimension]
 assert ImageType == type(fixed_image)
 
-# registration_method = itk.ANTSRegistration[ImageType, ImageType, itk.D].New(fixed_image, moving_image)
-registration_method = itk.ANTSRegistration[ImageType, ImageType, itk.D].New()
-registration_method.SetFixedImage(fixed_image)
-registration_method.SetMovingImage(moving_image)
+initial_transform = None
 if args.initial_transform is not None:
     transforms = itk.transformread(args.initial_transform)
     initial_transform = transforms[0]
     if len(transforms) > 1:
         print("Warning: the first transform will be used, the rest will be ignored.")
-    registration_method.SetInitialTransform(initial_transform)
 
-registration_method.Update()
-forward_transform = registration_method.GetForwardTransform()
-itk.transformwrite([forward_transform], args.output_transform)
-inverse_transform = registration_method.GetInverseTransform()  # just check it doesn't crash
+forward_transform, inverse_transform = itk.ants_registration(
+    fixed_image, moving_image, initial_transform=initial_transform)
+itk.transformwrite([forward_transform.Get()], args.output_transform)
 
 resampled_moving = itk.resample_image_filter(
-    moving_image, transform=forward_transform, output_parameters_from_image=fixed_image)
+    moving_image, transform=forward_transform.Get(), output_parameters_from_image=fixed_image)
 itk.imwrite(resampled_moving, args.resampled_moving, compression=False)

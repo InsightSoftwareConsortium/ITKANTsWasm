@@ -23,10 +23,10 @@
 #include "itkCastImageFilter.h"
 #include "itkResampleImageFilter.h"
 #include "itkPrintHelper.h"
+#include "itkANTSRegistration.h"
 
 namespace itk
 {
-
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistration()
 {
@@ -200,6 +200,26 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(Dat
   -> const DecoratedOutputTransformType *
 {
   return static_cast<const DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetInput(unsigned               index,
+                                                                            const FixedImageType * image)
+{
+  if (index == 0)
+  {
+    this->SetFixedImage(image);
+  }
+  else if (index == 1)
+  {
+    this->SetMovingImage(reinterpret_cast<const MovingImageType *>(image));
+  }
+  else
+  {
+    itkExceptionMacro(<< "Invalid index: " << index << ". Expected 0 (fixed) or 1 (moving).");
+  }
 }
 
 
