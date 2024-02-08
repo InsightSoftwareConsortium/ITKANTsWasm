@@ -2,7 +2,7 @@ set(test_input_dir ${${itk-module}_SOURCE_DIR}/test/Input)
 set(test_baseline_dir ${${itk-module}_SOURCE_DIR}/test/Baseline)
 
 itk_python_expression_add_test(NAME PythonInstantiateANTSRegistrationFloat2D
-  EXPRESSION "reg = itk.ANTSRegistration[itk.Image[itk.F, 2], itk.Image[itk.F, 2]].New()"
+  EXPRESSION "reg = itk.ANTSRegistration[itk.Image[itk.F, 2], itk.Image[itk.F, 2], itk.D].New()"
   )
 
 itk_python_add_test(NAME PythonANTSRegistrationTest

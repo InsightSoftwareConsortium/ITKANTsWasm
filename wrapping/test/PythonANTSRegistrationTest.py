@@ -37,8 +37,8 @@ Dimension = fixed_image.GetImageDimension()
 ImageType = itk.Image[PixelType, Dimension]
 assert ImageType == type(fixed_image)
 
-# registration_method = itk.ANTSRegistration[ImageType, ImageType].New(fixed_image, moving_image)
-registration_method = itk.ANTSRegistration[ImageType, ImageType].New()
+# registration_method = itk.ANTSRegistration[ImageType, ImageType, itk.D].New(fixed_image, moving_image)
+registration_method = itk.ANTSRegistration[ImageType, ImageType, itk.D].New()
 registration_method.SetFixedImage(fixed_image)
 registration_method.SetMovingImage(moving_image)
 if args.initial_transform is not None:
