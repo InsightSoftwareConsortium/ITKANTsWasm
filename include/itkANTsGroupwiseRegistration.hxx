@@ -58,7 +58,15 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
     image->Print(os, indent.GetNextIndent());
   }
 
-  this->m_PairwiseRegistration->Print(os, indent);
+  os << indent << "PairwiseRegistration: ";
+  if (this->m_PairwiseRegistration)
+  {
+    this->m_PairwiseRegistration->Print(os, indent.GetNextIndent());
+  }
+  else
+  {
+    os << "nullptr" << std::endl;
+  }
 }
 
 

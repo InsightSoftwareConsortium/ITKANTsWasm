@@ -99,12 +99,11 @@ public:
     // return this->GetOutput(imageIndex)->Get();
   }
 
-  /** Set/Get the gradient step size for transform optimizers that use it. */
+  /** Set/Get step size for shape update gradient. */
   itkSetMacro(GradientStep, ParametersValueType);
   itkGetMacro(GradientStep, ParametersValueType);
 
-  /** Set/Get smoothing for update field.
-   * This only affects transform which use a deformation field. */
+  /** Set/Get the weight for image blending. */
   itkSetMacro(BlendingWeight, ParametersValueType);
   itkGetMacro(BlendingWeight, ParametersValueType);
 
@@ -112,8 +111,7 @@ public:
   itkSetMacro(UseNoRigid, bool);
   itkGetMacro(UseNoRigid, bool);
 
-  /** Set/Get number of iterations for each pyramid level for SyN transforms.
-   * Shrink factors and smoothing sigmas for SyN are determined based on iterations. */
+  /** Set/Get number of template building iterations. */
   itkSetMacro(Iterations, unsigned int);
   itkGetMacro(Iterations, unsigned int);
 
@@ -174,7 +172,7 @@ protected:
 
   std::vector<ParametersValueType> m_Weights;
   std::vector<ImageType *>         m_ImageList;
-  typename PairwiseType::Pointer   m_PairwiseRegistration{ PairwiseType::New() };
+  typename PairwiseType::Pointer   m_PairwiseRegistration{ nullptr };
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TImage::ImageDimension == TTemplateImage::ImageDimension,
