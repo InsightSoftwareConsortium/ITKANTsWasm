@@ -43,16 +43,20 @@ if args.initial_template is not None:
     initial_template = itk.imread(args.initial_template)
     gwr.SetInitialTemplateImage(initial_template)
 
-images = []
+images = itk.vector[ImageType]()
 for i, input_filename in enumerate(args.input_image):
     print(f"Reading {input_filename}")
-    images.append(itk.imread(input_filename))
+    images.push_back(itk.imread(input_filename))
 gwr.SetImageList(images)
+print(gwr)
+
+# image_list = gwr.GetImageList()  # this line causes:
+# swig/python detected a memory leak of type 'itkImageUC2_Pointer *', no destructor found.
 
 print("Performing groupwise registration. This will take a while...")
 gwr.Update()
 
-print(f"Writing resulting image into file: {args.output_image}")
-itk.imwrite(gwr.GetOutput(), args.output_image, compression=False)
+print(f"Writing resulting template image into file: {args.output_template}")
+itk.imwrite(gwr.GetOutput(), args.output_template, compression=False)
 
 print("Test finished")

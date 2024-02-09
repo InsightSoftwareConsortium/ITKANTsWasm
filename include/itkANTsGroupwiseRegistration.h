@@ -78,7 +78,7 @@ public:
   {
     this->SetNthInput(0, const_cast<TemplateImageType *>(initialTemplate)); // the primary input
   }
-  const TemplateImageType * 
+  const TemplateImageType *
   GetInitialTemplateImage()
   {
     return static_cast<TemplateImageType *>(this->GetInput(0)); // the primary input
@@ -120,8 +120,8 @@ public:
   itkGetConstReferenceMacro(Weights, std::vector<ParametersValueType>);
 
   /** Set/Get the images to register. */
-  itkSetMacro(ImageList, std::vector<ImageType *>);
-  itkGetConstReferenceMacro(ImageList, std::vector<ImageType *>);
+  itkSetMacro(ImageList, std::vector<typename ImageType::Pointer>);
+  itkGetConstReferenceMacro(ImageList, std::vector<typename ImageType::Pointer>);
 
   using ProcessObject::AddInput;
   using ProcessObject::RemoveInput;
@@ -170,9 +170,9 @@ protected:
   bool                m_UseNoRigid{ true };
   unsigned int        m_Iterations{ 3 };
 
-  std::vector<ParametersValueType> m_Weights;
-  std::vector<ImageType *>         m_ImageList;
-  typename PairwiseType::Pointer   m_PairwiseRegistration{ nullptr };
+  std::vector<ParametersValueType>         m_Weights;
+  std::vector<typename ImageType::Pointer> m_ImageList;
+  typename PairwiseType::Pointer           m_PairwiseRegistration{ nullptr };
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TImage::ImageDimension == TTemplateImage::ImageDimension,

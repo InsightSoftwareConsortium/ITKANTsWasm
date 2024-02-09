@@ -55,16 +55,14 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   itk::SimpleFilterWatcher        watcher(filter, "ANTs groupwise registration");
   std::vector<ImageType::Pointer> images;
-  std::vector<ImageType *>        imagePointers;
   for (unsigned i = 1; i <= numberOfFaces; ++i)
   {
     std::string fileName = inDir + "/face" + std::to_string(i) + ".png";
     auto        image = itk::ReadImage<ImageType>(fileName);
     images.push_back(image);
-    imagePointers.push_back(image.GetPointer());
   }
 
-  filter->SetImageList(imagePointers);
+  filter->SetImageList(images);
   filter->DebugOn();
   filter->Update();
 
