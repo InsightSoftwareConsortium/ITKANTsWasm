@@ -18,17 +18,15 @@
 #ifndef itkANTSRegistration_hxx
 #define itkANTSRegistration_hxx
 
-#include "itkANTSRegistration.h"
-
 #include <sstream>
 
 #include "itkCastImageFilter.h"
 #include "itkResampleImageFilter.h"
 #include "itkPrintHelper.h"
+#include "itkANTSRegistration.h"
 
 namespace itk
 {
-
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::ANTSRegistration()
 {
@@ -60,8 +58,8 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std
 
   os << indent << "GradientStep: " << this->m_GradientStep << std::endl;
   os << indent << "FlowSigma: " << this->m_FlowSigma << std::endl;
-  os << indent << "m_TotalSigma: " << this->m_TotalSigma << std::endl;
-  os << indent << "m_SamplingRate: " << this->m_SamplingRate << std::endl;
+  os << indent << "TotalSigma: " << this->m_TotalSigma << std::endl;
+  os << indent << "SamplingRate: " << this->m_SamplingRate << std::endl;
   os << indent << "NumberOfBins: " << this->m_NumberOfBins << std::endl;
   os << indent << "RandomSeed: " << this->m_RandomSeed << std::endl;
   os << indent << "SmoothingInPhysicalUnits: " << (this->m_SmoothingInPhysicalUnits ? "On" : "Off") << std::endl;
@@ -202,6 +200,26 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GetOutput(Dat
   -> const DecoratedOutputTransformType *
 {
   return static_cast<const DecoratedOutputTransformType *>(this->ProcessObject::GetOutput(index));
+}
+
+
+template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
+void
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SetInput(unsigned               index,
+                                                                            const FixedImageType * image)
+{
+  if (index == 0)
+  {
+    this->SetFixedImage(image);
+  }
+  else if (index == 1)
+  {
+    this->SetMovingImage(reinterpret_cast<const MovingImageType *>(image));
+  }
+  else
+  {
+    itkExceptionMacro(<< "Invalid index: " << index << ". Expected 0 (fixed) or 1 (moving).");
+  }
 }
 
 

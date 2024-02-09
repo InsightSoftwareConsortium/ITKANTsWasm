@@ -260,6 +260,22 @@ public:
     return this->GetOutput(0); // return the forward transform
   }
 
+  using ProcessObject::AddInput;
+  using ProcessObject::RemoveInput;
+  using ProcessObject::GetInput;
+  using ProcessObject::SetInput;
+
+  /** Set/Get the image input of this process object.  */
+  virtual void
+  SetInput(const FixedImageType * input)
+  {
+    this->SetInput(0, input);
+  }
+
+  virtual void
+  SetInput(unsigned index, const FixedImageType * image);
+
+
 protected:
   ANTSRegistration();
   ~ANTSRegistration() override = default;
