@@ -50,9 +50,6 @@ for i, input_filename in enumerate(args.input_image):
 gwr.SetImageList(images)
 print(gwr)
 
-# image_list = gwr.GetImageList()  # this line causes:
-# swig/python detected a memory leak of type 'itkImageUC2_Pointer *', no destructor found.
-
 print("Performing groupwise registration. This will take a while...")
 gwr.Update()
 

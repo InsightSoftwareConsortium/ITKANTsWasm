@@ -119,9 +119,8 @@ public:
   itkSetMacro(Weights, std::vector<ParametersValueType>);
   itkGetConstReferenceMacro(Weights, std::vector<ParametersValueType>);
 
-  /** Set/Get the images to register. */
+  /** Set the images to register. */
   itkSetMacro(ImageList, std::vector<typename ImageType::Pointer>);
-  itkGetConstReferenceMacro(ImageList, std::vector<typename ImageType::Pointer>);
 
   using ProcessObject::AddInput;
   using ProcessObject::RemoveInput;
