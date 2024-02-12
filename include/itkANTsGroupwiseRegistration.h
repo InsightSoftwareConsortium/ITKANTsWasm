@@ -132,8 +132,7 @@ protected:
 
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
-  using ProcessObject::DataObjectPointer;
-  DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
+  DataObject::Pointer MakeOutput(DataObjectPointerArraySizeType) override;
 
   using PairwiseType = ANTSRegistration<ImageType, ImageType, ParametersValueType>;
 

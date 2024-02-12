@@ -71,8 +71,8 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
 
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
-auto
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType) -> DataObjectPointer
+DataObject::Pointer
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
 {
   typename OutputTransformType::Pointer ptr;
   Self::MakeOutputTransform(ptr);
