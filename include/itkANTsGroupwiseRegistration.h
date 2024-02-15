@@ -20,6 +20,7 @@
 
 #include "itkImageToImageFilter.h"
 #include "itkANTSRegistration.h"
+#include "itkImage.h"
 
 namespace itk
 {
@@ -143,10 +144,7 @@ protected:
   GenerateData() override;
 
   void
-  VerifyInputInformation() const override
-  {
-    // The images don't have to be the same size, or in the same physical spatial location.
-  }
+  VerifyInputInformation() const override;
 
   // helper function to create the right kind of concrete transform
   template <typename TTransform>
@@ -162,6 +160,11 @@ protected:
   {
     return this->GetOutput(index)->Set(transform);
   }
+
+  typename TemplateImageType::Pointer
+  ResampleToTarget(const ImageType *               input,
+                   const TemplateImageType *       target,
+                   typename TransformType::Pointer transform);
 
   ParametersValueType m_GradientStep{ 0.2 };
   ParametersValueType m_BlendingWeight{ 0.75 };

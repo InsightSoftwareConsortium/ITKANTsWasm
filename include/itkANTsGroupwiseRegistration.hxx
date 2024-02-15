@@ -21,6 +21,9 @@
 #include <sstream>
 
 #include "itkPrintHelper.h"
+#include "itkANTsGroupwiseRegistration.h" // needed by VS code completion
+#include "itkImageDuplicator.h"
+#include "itkWeightedAddImageFilter.h"
 
 namespace itk
 {
@@ -39,7 +42,8 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ANTsGro
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSelf(std::ostream & os, Indent indent) const
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSelf(std::ostream & os,
+                                                                                   Indent         indent) const
 {
   using namespace print_helper;
   Superclass::PrintSelf(os, indent);
@@ -71,6 +75,26 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
 
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+void
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::VerifyInputInformation() const
+{
+  if (m_ImageList.empty())
+  {
+    itkExceptionMacro("No input images provided.");
+  }
+
+  if (m_Weights.size() > 0 && m_Weights.size() != m_ImageList.size())
+  {
+    itkExceptionMacro("The number of weights is different from the number of images.");
+  }
+
+  if (m_ImageList.size() < 2)
+  {
+    itkExceptionMacro("At least two input images are required.");
+  }
+}
+
+template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 DataObject::Pointer
 ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
 {
@@ -83,17 +107,104 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOut
 
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+auto
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ResampleToTarget(
+  const ImageType *               input,
+  const TemplateImageType *       target,
+  typename TransformType::Pointer transform) -> typename TemplateImageType::Pointer
+{
+  using ResampleFilterType =
+    ResampleImageFilter<ImageType, TemplateImageType, ParametersValueType, ParametersValueType>;
+  typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+  resampleFilter->SetInput(input);
+  if (transform)
+  {
+    resampleFilter->SetTransform(transform);
+  }
+  resampleFilter->SetOutputParametersFromImage(target);
+  resampleFilter->Update();
+  return resampleFilter->GetOutput();
+}
+
+
+template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
 ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateData()
 {
-  this->AllocateOutputs();
+  this->UpdateProgress(0.0);
 
-  this->UpdateProgress(0.01);
+  if (!m_PairwiseRegistration) // TODO: allow setting a custom pairwise registration
+  {
+    m_PairwiseRegistration = PairwiseType::New();
+    m_PairwiseRegistration->SetTypeOfTransform("SyN");
+  }
 
-  // TODO: reimplement stuff from:
-  // https://github.com/ANTsX/ANTsPy/blob/master/ants/registration/build_template.py
+  if (m_Weights.empty())
+  {
+    m_Weights.resize(m_ImageList.size(), 1.0 / m_ImageList.size());
+  }
+  else // normalize to sum to 1
+  {
+    TParametersValueType sum = 0;
+    for (const auto & weight : m_Weights)
+    {
+      sum += weight;
+    }
+    for (auto & weight : m_Weights)
+    {
+      weight /= sum;
+    }
+  }
 
-  this->UpdateProgress(0.95);
+  TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
+  if (!initialTemplate)
+  {
+    itkExceptionMacro("Initial template must be a float-pixel image.");
+  }
+
+  if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
+  {
+    // copy the initial template into the output (the current average template)
+    using DuplicatorType = ImageDuplicator<TemplateImageType>;
+    typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    duplicator->SetInputImage(initialTemplate);
+    duplicator->Update();
+    this->GraftOutput(duplicator->GetOutput());
+  }
+  else
+  {
+    typename TemplateImageType::Pointer currentTemplate = TemplateImageType::New();
+    currentTemplate->CopyInformation(m_ImageList[0]);
+    currentTemplate->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    currentTemplate->Allocate(true); // initialize to zero
+
+    // create a simple average of all the input images
+    using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
+    typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+    for (unsigned i = 0; i < m_ImageList.size(); ++i)
+    {
+      typename TemplateImageType::Pointer resampledImage = ResampleToTarget(m_ImageList[i], currentTemplate, nullptr);
+
+      addImageFilter->SetInput1(currentTemplate);
+      addImageFilter->SetInput2(resampledImage);
+      addImageFilter->SetAlpha(1.0 - m_Weights[i]);
+      // addImageFilter->SetInPlace(true); // breaks the result in second iteration
+      addImageFilter->Update();
+      currentTemplate = addImageFilter->GetOutput();
+      // WriteImage(currentTemplate, "currentTemplate.nrrd");
+    }
+    this->GraftOutput(currentTemplate);
+  }
+
+
+  if (m_UseNoRigid)
+  {
+    // avgaffine = utils.average_affine_transform_no_rigid(affinelist)
+  }
+  else
+  {
+    // avgaffine = utils.average_affine_transform(affinelist)
+  }
 
 
   // typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();

@@ -74,7 +74,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   for (unsigned i = 1; i < numberOfFaces; ++i)
   {
     auto fTransform = filter->GetTransform(i);
-    transformWriter->SetFileName(outDir + "/face.tfm");
+    transformWriter->SetFileName(outDir + "/face" + std::to_string(i) + ".tfm");
     transformWriter->SetInput(fTransform);
     transformWriter->Update();
   }
