@@ -135,7 +135,7 @@ protected:
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   DataObject::Pointer MakeOutput(DataObjectPointerArraySizeType) override;
 
-  using PairwiseType = ANTSRegistration<ImageType, ImageType, ParametersValueType>;
+  using PairwiseType = ANTSRegistration<TemplateImageType, ImageType, ParametersValueType>;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
@@ -160,6 +160,9 @@ protected:
   {
     return this->GetOutput(index)->Set(transform);
   }
+
+  typename TemplateImageType::Pointer
+  DuplicateImage(const TemplateImageType * image);
 
   typename TemplateImageType::Pointer
   ResampleToTarget(const ImageType *               input,

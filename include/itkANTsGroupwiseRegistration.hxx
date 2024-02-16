@@ -108,6 +108,19 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOut
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 auto
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::DuplicateImage(const TemplateImageType * image)
+  -> typename TemplateImageType::Pointer
+{
+  using DuplicatorType = ImageDuplicator<TemplateImageType>;
+  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+  duplicator->SetInputImage(image);
+  duplicator->Update();
+  return duplicator->GetOutput();
+}
+
+
+template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+auto
 ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ResampleToTarget(
   const ImageType *               input,
   const TemplateImageType *       target,
@@ -137,6 +150,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
+    m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
   }
 
   if (m_Weights.empty())
@@ -156,7 +170,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     }
   }
 
-  TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
+  typename TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
   if (!initialTemplate)
   {
     itkExceptionMacro("Initial template must be a float-pixel image.");
@@ -165,11 +179,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
   {
     // copy the initial template into the output (the current average template)
-    using DuplicatorType = ImageDuplicator<TemplateImageType>;
-    typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
-    duplicator->SetInputImage(initialTemplate);
-    duplicator->Update();
-    this->GraftOutput(duplicator->GetOutput());
+    this->GraftOutput(this->DuplicateImage(initialTemplate));
   }
   else
   {
@@ -195,17 +205,36 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     }
     this->GraftOutput(currentTemplate);
   }
+  this->UpdateProgress(0.01);
 
-
-  if (m_UseNoRigid)
+  for (unsigned i = 0; i < m_Iterations; ++i)
   {
-    // avgaffine = utils.average_affine_transform_no_rigid(affinelist)
-  }
-  else
-  {
-    // avgaffine = utils.average_affine_transform(affinelist)
+    typename TemplateImageType::Pointer currentTemplate = this->DuplicateImage(this->GetOutput());
+    using AffineType = AffineTransform<TParametersValueType, ImageDimension>;
+    std::vector<typename AffineType::ConstPointer> affinelist(m_ImageList.size(), nullptr);
+    for (unsigned k = 0; k < m_ImageList.size(); ++k)
+    {
+      m_PairwiseRegistration->SetFixedImage(currentTemplate);
+      m_PairwiseRegistration->SetMovingImage(m_ImageList[k]);
+      m_PairwiseRegistration->Update();
+
+      const CompositeTransformType * compositeTransform = m_PairwiseRegistration->GetForwardTransform();
+      affinelist[k] = dynamic_cast<const AffineType *>(compositeTransform->GetNthTransform(0).GetPointer());
+    }
+
+    if (m_UseNoRigid)
+    {
+      // avgaffine = utils.average_affine_transform_no_rigid(affinelist)
+    }
+    else
+    {
+      // avgaffine = utils.average_affine_transform(affinelist)
+    }
+
+    this->GraftOutput(currentTemplate);
   }
 
+  this->UpdateProgress(0.99);
 
   // typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   // if (forwardTransform->GetInverse(inverseTransform))
