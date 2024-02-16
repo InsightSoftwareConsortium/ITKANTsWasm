@@ -165,14 +165,16 @@ protected:
   DuplicateImage(const TemplateImageType * image);
 
   typename TemplateImageType::Pointer
-  ResampleToTarget(const ImageType *               input,
-                   const TemplateImageType *       target,
-                   typename TransformType::Pointer transform);
+  ResampleToTarget(const ImageType *                    input,
+                   const TemplateImageType *            target,
+                   typename TransformType::ConstPointer transform);
 
-  using AffineType = AffineTransform<TParametersValueType, ImageDimension>;
+  using AffineType = AffineTransform<ParametersValueType, ImageDimension>;
 
-  typename TemplateImageType::Pointer
-  AverageTransformedImages(const std::vector<typename AffineType::ConstPointer> & affinelist);
+  template <typename OutImageType, typename ArrayImageType>
+  typename OutImageType::Pointer
+  AverageTransformedImages(const std::vector<typename ArrayImageType::Pointer> &  imageList,
+                           const std::vector<typename AffineType::ConstPointer> & affineList);
 
   ParametersValueType m_GradientStep{ 0.2 };
   ParametersValueType m_BlendingWeight{ 0.75 };
