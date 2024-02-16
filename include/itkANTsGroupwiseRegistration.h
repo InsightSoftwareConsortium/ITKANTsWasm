@@ -104,7 +104,7 @@ public:
   itkSetMacro(GradientStep, ParametersValueType);
   itkGetMacro(GradientStep, ParametersValueType);
 
-  /** Set/Get the weight for image blending. */
+  /** Set/Get the weight for image blending. Zero disables it. */
   itkSetMacro(BlendingWeight, ParametersValueType);
   itkGetMacro(BlendingWeight, ParametersValueType);
 
@@ -171,10 +171,14 @@ protected:
 
   using AffineType = AffineTransform<ParametersValueType, ImageDimension>;
 
-  template <typename OutImageType, typename ArrayImageType>
-  typename OutImageType::Pointer
-  AverageTransformedImages(const std::vector<typename ArrayImageType::Pointer> &  imageList,
-                           const std::vector<typename AffineType::ConstPointer> & affineList);
+  typename TemplateImageType::Pointer
+  AverageTransformedImages(const std::vector<typename AffineType::ConstPointer> & affinelist);
+
+  using DisplacementTransformType = DisplacementFieldTransform<ParametersValueType, ImageDimension>;
+  using DisplacementImageType = typename DisplacementTransformType::DisplacementFieldType;
+
+  typename DisplacementImageType::Pointer
+  AverageDisplacementFields(const std::vector<typename DisplacementImageType::Pointer> & dfList);
 
   ParametersValueType m_GradientStep{ 0.2 };
   ParametersValueType m_BlendingWeight{ 0.75 };
