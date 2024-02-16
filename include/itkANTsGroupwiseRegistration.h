@@ -169,6 +169,11 @@ protected:
                    const TemplateImageType *       target,
                    typename TransformType::Pointer transform);
 
+  using AffineType = AffineTransform<TParametersValueType, ImageDimension>;
+
+  typename TemplateImageType::Pointer
+  AverageTransformedImages(const std::vector<typename AffineType::ConstPointer> & affinelist);
+
   ParametersValueType m_GradientStep{ 0.2 };
   ParametersValueType m_BlendingWeight{ 0.75 };
   bool                m_UseNoRigid{ true };

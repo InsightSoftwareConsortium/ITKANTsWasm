@@ -475,8 +475,9 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
 
   this->UpdateProgress(0.01);
 
-  const InitialTransformType * initialTransform = IdentityTransform<ParametersValueType, ImageDimension>::New();
-  const DecoratedInitialTransformType * decoratedInitialTransform = this->GetInitialTransformInput();
+  typename CompositeTransformType::Pointer emptyComposite = CompositeTransformType::New();
+  const InitialTransformType *             initialTransform = emptyComposite;
+  const DecoratedInitialTransformType *    decoratedInitialTransform = this->GetInitialTransformInput();
   if (decoratedInitialTransform != nullptr)
   {
     initialTransform = decoratedInitialTransform->Get();

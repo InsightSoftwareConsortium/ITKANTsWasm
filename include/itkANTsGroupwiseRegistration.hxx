@@ -139,6 +139,35 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Resampl
   return resampleFilter->GetOutput();
 }
 
+template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+auto
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::AverageTransformedImages(
+  const std::vector<typename AffineType::ConstPointer> & affinelist) ->
+  typename TemplateImageType::Pointer
+{
+  typename TemplateImageType::Pointer average = TemplateImageType::New();
+  average->CopyInformation(m_ImageList[0]);
+  average->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+  average->Allocate(true); // initialize to zero
+
+  using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
+  typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+  for (unsigned i = 0; i < m_ImageList.size(); ++i)
+  {
+    typename TemplateImageType::Pointer resampledImage = ResampleToTarget(m_ImageList[i], average, nullptr);
+
+    addImageFilter->SetInput1(average);
+    addImageFilter->SetInput2(resampledImage);
+    addImageFilter->SetAlpha(1.0 - m_Weights[i]);
+    // addImageFilter->SetInPlace(true); // breaks the result in second iteration
+    addImageFilter->Update();
+    average = addImageFilter->GetOutput();
+    // WriteImage(currentTemplate, "currentTemplate.nrrd");
+  }
+
+  return average;
+}
+
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
@@ -176,6 +205,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     itkExceptionMacro("Initial template must be a float-pixel image.");
   }
 
+  std::vector<typename AffineType::ConstPointer> emptyAffines(m_ImageList.size(), nullptr);
   if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
   {
     // copy the initial template into the output (the current average template)
@@ -183,34 +213,14 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   }
   else
   {
-    typename TemplateImageType::Pointer currentTemplate = TemplateImageType::New();
-    currentTemplate->CopyInformation(m_ImageList[0]);
-    currentTemplate->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
-    currentTemplate->Allocate(true); // initialize to zero
-
     // create a simple average of all the input images
-    using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
-    typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
-    for (unsigned i = 0; i < m_ImageList.size(); ++i)
-    {
-      typename TemplateImageType::Pointer resampledImage = ResampleToTarget(m_ImageList[i], currentTemplate, nullptr);
-
-      addImageFilter->SetInput1(currentTemplate);
-      addImageFilter->SetInput2(resampledImage);
-      addImageFilter->SetAlpha(1.0 - m_Weights[i]);
-      // addImageFilter->SetInPlace(true); // breaks the result in second iteration
-      addImageFilter->Update();
-      currentTemplate = addImageFilter->GetOutput();
-      // WriteImage(currentTemplate, "currentTemplate.nrrd");
-    }
-    this->GraftOutput(currentTemplate);
+    this->GraftOutput(this->AverageTransformedImages(emptyAffines));
   }
   this->UpdateProgress(0.01);
 
   for (unsigned i = 0; i < m_Iterations; ++i)
   {
     typename TemplateImageType::Pointer currentTemplate = this->DuplicateImage(this->GetOutput());
-    using AffineType = AffineTransform<TParametersValueType, ImageDimension>;
     std::vector<typename AffineType::ConstPointer> affinelist(m_ImageList.size(), nullptr);
     for (unsigned k = 0; k < m_ImageList.size(); ++k)
     {
@@ -220,6 +230,9 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
       const CompositeTransformType * compositeTransform = m_PairwiseRegistration->GetForwardTransform();
       affinelist[k] = dynamic_cast<const AffineType *>(compositeTransform->GetNthTransform(0).GetPointer());
+
+      // average transformed images, start with an all-zero image
+      typename TemplateImageType::Pointer wavg = this->AverageTransformedImages(affinelist);
     }
 
     if (m_UseNoRigid)
