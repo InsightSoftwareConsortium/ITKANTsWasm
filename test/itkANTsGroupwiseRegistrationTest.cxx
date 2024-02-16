@@ -49,7 +49,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   using ImageType = itk::Image<unsigned char, 2>;
   using FloatImageType = itk::Image<float, 2>;
-  using FilterType = itk::ANTsGroupwiseRegistration<ImageType, FloatImageType, float>;
+  using FilterType = itk::ANTsGroupwiseRegistration<ImageType, FloatImageType, double>;
   typename FilterType::Pointer filter = FilterType::New();
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTsGroupwiseRegistration, ImageToImageFilter);
 

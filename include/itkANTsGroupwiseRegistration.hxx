@@ -24,6 +24,8 @@
 #include "itkANTsGroupwiseRegistration.h" // needed by VS code completion
 #include "itkImageDuplicator.h"
 #include "itkWeightedAddImageFilter.h"
+#include "itkAverageAffineTransformFunction.h"
+#include "itkAverageAffineTransformNoRigidFunction.h"
 
 namespace itk
 {
@@ -153,17 +155,16 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Average
   average->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
   average->Allocate(true); // initialize to zero
 
-  using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
-  typename AddImageFilterType::Pointer addImageFilter =
-    AddImageFilterType::New(); // inside the loop avoids junk result?
   for (unsigned i = 0; i < m_ImageList.size(); ++i)
   {
     typename TemplateImageType::Pointer resampledImage = ResampleToTarget(m_ImageList[i], average, affineList[i]);
 
+    using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
+    typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+    addImageFilter->SetInPlace(true);
     addImageFilter->SetInput1(average);
     addImageFilter->SetInput2(resampledImage);
     addImageFilter->SetAlpha(1.0 - m_Weights[i]);
-    // addImageFilter->SetInPlace(true); // breaks the result in second iteration
     addImageFilter->Update();
     average = addImageFilter->GetOutput();
   }
@@ -183,9 +184,6 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Average
   average->SetRegions(dfList[0]->GetLargestPossibleRegion());
   average->Allocate(true); // initialize to zero
 
-  using AddImageFilterType =
-    BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
-  typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
   for (unsigned i = 0; i < dfList.size(); ++i)
   {
     assert(average->SameImageGridAs(dfList[i]));
@@ -199,10 +197,14 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Average
       }
       return result;
     };
+
+    using AddImageFilterType =
+      BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
+    typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+    addImageFilter->SetInPlace(true);
     addImageFilter->SetFunctor(weightedVectorAdd);
     addImageFilter->SetInput1(average);
     addImageFilter->SetInput2(dfList[i]);
-    // addImageFilter->SetInPlace(true); // breaks the result in second iteration
     addImageFilter->Update();
     average = addImageFilter->GetOutput();
   }
@@ -221,7 +223,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
-    // m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
+    m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
     // m_PairwiseRegistration->DebugOn();
   }
 
@@ -291,19 +293,36 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     // average transformed images, start with an all-zero image
     typename TemplateImageType::Pointer xavgNew = this->AverageTransformedImages(affineList);
 
-    if (m_UseNoRigid)
+    auto                         affineCenter = affineList[0]->GetCenter();
+    typename AffineType::Pointer avgAffine = AffineType::New();
+    if (m_UseNoRigid) // branches only differ in name of averaging function
     {
-      // avgaffine = utils.average_affine_transform_no_rigid(affineList)
+      using WarperType = itk::AverageAffineTransformNoRigidFunction<AffineType>;
+      WarperType average_func;
+      for (unsigned k = 0; k < m_ImageList.size(); ++k)
+      {
+        average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
+      }
+      auto affineCenter = affineList[0]->GetCenter();
+      average_func.AverageMultipleAffineTransform(affineCenter, avgAffine);
     }
     else
     {
-      // avgaffine = utils.average_affine_transform(affineList)
+      using WarperType = itk::AverageAffineTransformFunction<AffineType>;
+      WarperType average_func;
+      for (unsigned k = 0; k < m_ImageList.size(); ++k)
+      {
+        average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
+      }
+      auto affineCenter = affineList[0]->GetCenter();
+      average_func.AverageMultipleAffineTransform(affineCenter, avgAffine);
     }
 
     if (std::count(dfList.begin(), dfList.end(), nullptr) == 0) // we have displacement fields
     {
       // average the deformation fields
       typename DisplacementImageType::Pointer wavg = this->AverageDisplacementFields(dfList);
+      WriteImage(wavg, "wavg.nrrd");
       // TODO: more implementation here
     }
     else
