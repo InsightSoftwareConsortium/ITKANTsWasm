@@ -21,6 +21,7 @@
 #include "itkImageToImageFilter.h"
 #include "itkANTSRegistration.h"
 #include "itkImage.h"
+#include "itkDisplacementFieldTransform.h"
 
 namespace itk
 {
@@ -123,6 +124,13 @@ public:
   /** Set the images to register. */
   itkSetMacro(ImageList, std::vector<typename ImageType::Pointer>);
 
+  /** Add an image to the list of images to register. */
+  virtual void
+  AddImage(const typename ImageType::Pointer image)
+  {
+    m_ImageList.push_back(image);
+  }
+
   using ProcessObject::AddInput;
   using ProcessObject::RemoveInput;
   using ProcessObject::GetInput;
@@ -164,8 +172,9 @@ protected:
   typename TemplateImageType::Pointer
   DuplicateImage(const TemplateImageType * image);
 
-  typename TemplateImageType::Pointer
-  ResampleToTarget(const ImageType *                    input,
+  template<typename TOutputImage, typename TInputImage>
+  typename TOutputImage::Pointer
+  ResampleToTarget(const TInputImage *                  input,
                    const TemplateImageType *            target,
                    typename TransformType::ConstPointer transform);
 

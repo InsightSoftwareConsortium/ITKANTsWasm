@@ -21,7 +21,7 @@
 #include <sstream>
 
 #include "itkPrintHelper.h"
-#include "itkANTsGroupwiseRegistration.h" // needed by VS code completion
+#include "itkANTsGroupwiseRegistration.h" // needed by Visual Studio for code completion
 #include "itkImageDuplicator.h"
 #include "itkWeightedAddImageFilter.h"
 #include "itkAverageAffineTransformFunction.h"
@@ -123,14 +123,14 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Duplica
 
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+template <typename TOutputImage, typename TInputImage>
 auto
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ResampleToTarget(
-  const ImageType *                    input,
+itk::ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ResampleToTarget(
+  const TInputImage *                  input,
   const TemplateImageType *            target,
-  typename TransformType::ConstPointer transform) -> typename TemplateImageType::Pointer
+  typename TransformType::ConstPointer transform) -> typename TOutputImage::Pointer
 {
-  using ResampleFilterType =
-    ResampleImageFilter<ImageType, TemplateImageType, ParametersValueType, ParametersValueType>;
+  using ResampleFilterType = ResampleImageFilter<TInputImage, TOutputImage, ParametersValueType, ParametersValueType>;
   typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
   resampleFilter->SetInput(input);
   if (transform)
@@ -157,7 +157,8 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Average
 
   for (unsigned i = 0; i < m_ImageList.size(); ++i)
   {
-    typename TemplateImageType::Pointer resampledImage = ResampleToTarget(m_ImageList[i], average, affineList[i]);
+    typename TemplateImageType::Pointer resampledImage =
+      ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[i], average, affineList[i]);
 
     using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
     typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
@@ -268,12 +269,12 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
   for (unsigned i = 0; i < m_Iterations; ++i)
   {
-    typename TemplateImageType::Pointer                  currentTemplate = this->DuplicateImage(this->GetOutput());
+    typename TemplateImageType::Pointer                  xavg = this->DuplicateImage(this->GetOutput());
     std::vector<typename AffineType::ConstPointer>       affineList(m_ImageList.size(), nullptr);
     std::vector<typename DisplacementImageType::Pointer> dfList(m_ImageList.size(), nullptr);
     for (unsigned k = 0; k < m_ImageList.size(); ++k)
     {
-      m_PairwiseRegistration->SetFixedImage(currentTemplate);
+      m_PairwiseRegistration->SetFixedImage(xavg);
       m_PairwiseRegistration->SetMovingImage(m_ImageList[k]);
       m_PairwiseRegistration->Update();
 
@@ -317,17 +318,41 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       auto affineCenter = affineList[0]->GetCenter();
       average_func.AverageMultipleAffineTransform(affineCenter, avgAffine);
     }
+    typename AffineType::Pointer avgAffineInverse;
+    bool                         inverseExists = avgAffine->GetInverse(avgAffineInverse);
+    assert(inverseExists);
 
-    if (std::count(dfList.begin(), dfList.end(), nullptr) == 0) // we have displacement fields
+    if (std::count(dfList.begin(), dfList.end(), nullptr) == 0) // we have all the displacement fields
     {
       // average the deformation fields
       typename DisplacementImageType::Pointer wavg = this->AverageDisplacementFields(dfList);
-      WriteImage(wavg, "wavg.nrrd");
-      // TODO: more implementation here
+      // WriteImage(wavg, "wavg.nrrd");
+
+      // wavg *= -gradient_step
+      typename DisplacementImageType::PixelType wscl;
+      wscl.Fill(-1.0 * this->GetGradientStep());
+      using MulType = MultiplyImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
+      typename MulType::Pointer mul = MulType::New();
+      mul->SetInPlace(true);
+      mul->SetInput1(wavg);
+      mul->SetConstant2(wscl);
+      mul->Update();
+      wavg = mul->GetOutput();
+
+      typename DisplacementImageType::Pointer wavgA =
+        ResampleToTarget<DisplacementImageType, DisplacementImageType>(wavg, xavgNew, avgAffineInverse);
+
+      typename DisplacementTransformType::Pointer wavgTransform = DisplacementTransformType::New();
+      wavgTransform->SetDisplacementField(wavgA);
+
+      typename CompositeTransformType::Pointer combinedTransform = CompositeTransformType::New();
+      combinedTransform->AddTransform(wavgTransform);
+      combinedTransform->AddTransform(avgAffineInverse);
+      xavg = ResampleToTarget<TemplateImageType, TemplateImageType>(xavgNew, xavgNew, combinedTransform);
     }
-    else
+    else // we only have the affine transforms
     {
-      // xavg = apply_transforms(fixed=xavgNew, moving=xavgNew, transformlist=[afffn], whichtoinvert=[1])
+      xavg = ResampleToTarget<TemplateImageType, TemplateImageType>(xavgNew, xavgNew, avgAffineInverse);
     }
 
     if (m_BlendingWeight > 0)
@@ -335,7 +360,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       // xavg = xavg * blending_weight + utils.iMath(xavg, "Sharpen") * (1.0 - blending_weight)
     }
 
-    this->GraftOutput(currentTemplate);
+    this->GraftOutput(xavg);
   }
 
   this->UpdateProgress(0.99);

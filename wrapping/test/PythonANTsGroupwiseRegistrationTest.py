@@ -46,8 +46,10 @@ if args.initial_template is not None:
 images = []
 for i, input_filename in enumerate(args.input_image):
     print(f"Reading {input_filename}")
-    images.append(itk.imread(input_filename))
-gwr.SetImageList(images)
+    image = itk.imread(input_filename)
+    images.append(image)
+    gwr.AddImage(images[i])
+# gwr.SetImageList(images)  # crashes for now
 print(gwr)
 
 print("Performing groupwise registration. This will take a while...")
