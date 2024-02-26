@@ -93,14 +93,6 @@ public:
     return this->GetOutput(0); // this is just the primary output
   }
 
-  /** Returns the transform resulting from the registration process  */
-  const OutputTransformType *
-  GetTransform(unsigned imageIndex) const
-  {
-    return nullptr;
-    // return this->GetOutput(imageIndex)->Get();
-  }
-
   /** Set/Get step size for shape update gradient. */
   itkSetMacro(GradientStep, ParametersValueType);
   itkGetMacro(GradientStep, ParametersValueType);
@@ -130,6 +122,17 @@ public:
   {
     m_ImageList.push_back(image);
   }
+
+  /** Returns the transforms which register the image with the provided index to the average template. */
+  const typename OutputTransformType::ConstPointer
+  GetTransform(unsigned imageIndex) const
+  {
+    return m_TransformList[imageIndex];
+  }
+
+  /** Get the list of transforms which register the corresponding image to the average template. */
+  itkGetConstReferenceMacro(TransformList, std::vector<typename OutputTransformType::Pointer>);
+
 
   using ProcessObject::AddInput;
   using ProcessObject::RemoveInput;
@@ -172,7 +175,7 @@ protected:
   typename TemplateImageType::Pointer
   DuplicateImage(const TemplateImageType * image);
 
-  template<typename TOutputImage, typename TInputImage>
+  template <typename TOutputImage, typename TInputImage>
   typename TOutputImage::Pointer
   ResampleToTarget(const TInputImage *                  input,
                    const TemplateImageType *            target,
@@ -197,6 +200,8 @@ protected:
   std::vector<ParametersValueType>         m_Weights;
   std::vector<typename ImageType::Pointer> m_ImageList;
   typename PairwiseType::Pointer           m_PairwiseRegistration{ nullptr };
+
+  std::vector<typename OutputTransformType::Pointer> m_TransformList;
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TImage::ImageDimension == TTemplateImage::ImageDimension,

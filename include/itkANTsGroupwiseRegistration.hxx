@@ -245,6 +245,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       weight /= sum;
     }
   }
+  m_TransformList.resize(m_ImageList.size(), nullptr);
 
   typename TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
   if (!initialTemplate)
@@ -288,6 +289,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
         dfList[k] = dfNonConstTransform->GetDisplacementField();
       }
 
+      m_TransformList[k] = const_cast<CompositeTransformType *>(compositeTransform);
       this->UpdateProgress(0.01f + progressStep * (i * m_ImageList.size() + (k + 1)));
     }
 
@@ -362,18 +364,6 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
     this->GraftOutput(xavg);
   }
-
-  this->UpdateProgress(0.99);
-
-  // typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
-  // if (forwardTransform->GetInverse(inverseTransform))
-  // {
-  //   this->SetInverseTransform(inverseTransform);
-  // }
-  // else
-  // {
-  //   this->SetInverseTransform(nullptr);
-  // }
 
   this->UpdateProgress(1.0);
 }
