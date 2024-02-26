@@ -186,7 +186,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Average
 
   for (unsigned i = 0; i < dfList.size(); ++i)
   {
-    assert(average->SameImageGridAs(dfList[i]));
+    assert(average->IsSameImageGeometryAs(dfList[i]));
 
     auto weightedVectorAdd = [this, i](const typename DisplacementImageType::PixelType & a,
                                        const typename DisplacementImageType::PixelType & b) {
