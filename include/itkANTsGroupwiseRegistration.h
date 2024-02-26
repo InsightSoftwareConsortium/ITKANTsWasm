@@ -118,9 +118,16 @@ public:
 
   /** Add an image to the list of images to register. */
   virtual void
-  AddImage(const typename ImageType::Pointer image)
+  AddImage(const ImageType * image)
   {
-    m_ImageList.push_back(image);
+    m_ImageList.push_back(const_cast<ImageType *>(image));
+  }
+
+  /** Clear the list of images to register. */
+  virtual void
+  ClearImageList()
+  {
+    m_ImageList.clear();
   }
 
   /** Returns the transforms which register the image with the provided index to the average template. */
