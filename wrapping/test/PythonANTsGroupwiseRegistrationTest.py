@@ -36,17 +36,17 @@ ImageType = itk.Image[PixelType, Dimension]
 assert ImageType == type(first_image)
 TemplateImageType = itk.Image[itk.F, Dimension]
 
-gwr = itk.ANTsGroupwiseRegistration[ImageType, TemplateImageType, itk.F].New()
+gwr = itk.ANTsGroupwiseRegistration[ImageType, TemplateImageType, itk.D].New()
 
 if args.initial_template is not None:
     print(f"Reading initial template: {args.initial_template}")
     initial_template = itk.imread(args.initial_template)
     gwr.SetInitialTemplateImage(initial_template)
 
-images = itk.vector[ImageType]()
+images = []
 for i, input_filename in enumerate(args.input_image):
     print(f"Reading {input_filename}")
-    images.push_back(itk.imread(input_filename))
+    images.append(itk.imread(input_filename))
 gwr.SetImageList(images)
 print(gwr)
 
