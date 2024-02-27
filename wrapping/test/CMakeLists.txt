@@ -41,4 +41,5 @@ itk_python_add_test(NAME PythonANTsGroupwiseRegistrationTest
     -i DATA{${test_input_dir}/face7.png}
     -i DATA{${test_input_dir}/face8.png}
     -i DATA{${test_input_dir}/face9.png}
+    -i DATA{${test_input_dir}/face10.png}
   )

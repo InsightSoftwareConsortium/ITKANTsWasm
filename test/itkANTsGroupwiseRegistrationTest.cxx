@@ -41,7 +41,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   std::string inDir = argv[1];
   std::string outDir = argv[2];
 
-  unsigned numberOfFaces = 9;
+  unsigned numberOfFaces = 10;
   if (argc > 3)
   {
     numberOfFaces = std::stoul(argv[3]);
