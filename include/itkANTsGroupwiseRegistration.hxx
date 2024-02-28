@@ -25,6 +25,7 @@
 #include "itkImageDuplicator.h"
 #include "itkWeightedAddImageFilter.h"
 #include "itkAverageAffineTransformFunction.h"
+#include "itkLaplacianSharpeningImageFilter.h"
 
 namespace itk
 {
@@ -346,7 +347,20 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
     if (m_BlendingWeight > 0)
     {
-      // xavg = xavg * blending_weight + utils.iMath(xavg, "Sharpen") * (1.0 - blending_weight)
+      using SharpenFilterType = LaplacianSharpeningImageFilter<TemplateImageType, TemplateImageType>;
+      typename SharpenFilterType::Pointer sharpenFilter = SharpenFilterType::New();
+      sharpenFilter->SetInput(xavg);
+      sharpenFilter->Update();
+      typename TemplateImageType::Pointer sharpened = sharpenFilter->GetOutput();
+
+      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
+      typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+      addImageFilter->SetInPlace(true);
+      addImageFilter->SetInput1(xavg);
+      addImageFilter->SetInput2(sharpened);
+      addImageFilter->SetAlpha(m_BlendingWeight);
+      addImageFilter->Update();
+      xavg = addImageFilter->GetOutput();
     }
 
     this->GraftOutput(xavg);
