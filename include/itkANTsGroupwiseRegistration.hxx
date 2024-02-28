@@ -224,7 +224,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
-    m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
+    // m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
     // m_PairwiseRegistration->DebugOn();
   }
 
@@ -289,7 +289,11 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
         dfList[k] = dfNonConstTransform->GetDisplacementField();
       }
 
-      m_TransformList[k] = const_cast<CompositeTransformType *>(compositeTransform);
+      if (m_KeepTransforms || (compositeTransform->GetNumberOfTransforms() == 1 && affineList[k] != nullptr))
+      {
+        // if the composite transform is just an affine, keep it regardless of the setting
+        m_TransformList[k] = const_cast<CompositeTransformType *>(compositeTransform);
+      }
       this->UpdateProgress(0.01f + progressStep * (i * m_ImageList.size() + (k + 1)));
     }
 

@@ -109,6 +109,14 @@ public:
   itkSetMacro(Iterations, unsigned int);
   itkGetMacro(Iterations, unsigned int);
 
+
+  /** Set/Get whether we should keep registration transforms in memory.
+   * If true, transforms which register each of the input images to the template
+   * will be available via GetTransform(index) after the registration finishes.
+   * Off by default, to conserve memory. */
+  itkSetMacro(KeepTransforms, bool);
+  itkGetMacro(KeepTransforms, bool);
+
   /** Set/Get the weight for each image. */
   itkSetMacro(Weights, std::vector<ParametersValueType>);
   itkGetConstReferenceMacro(Weights, std::vector<ParametersValueType>);
@@ -203,6 +211,7 @@ protected:
   ParametersValueType m_BlendingWeight{ 0.75 };
   bool                m_UseNoRigid{ true };
   unsigned int        m_Iterations{ 3 };
+  bool                m_KeepTransforms{ false };
 
   std::vector<ParametersValueType>         m_Weights;
   std::vector<typename ImageType::Pointer> m_ImageList;
