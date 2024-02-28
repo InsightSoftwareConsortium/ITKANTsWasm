@@ -28,7 +28,7 @@ itk_python_expression_add_test(NAME PythonInstantiateANTsGroupwiseRegistrationSh
 itk_python_add_test(NAME PythonANTsGroupwiseRegistrationTest
   TEST_DRIVER_ARGS
   --compare
-    DATA{${test_baseline_dir}/T_template0Result.nrrd}
+    DATA{${test_baseline_dir}/T_template0Result337.nrrd}
     ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseRegistrationTest.nrrd
   COMMAND PythonANTsGroupwiseRegistrationTest.py
     -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseRegistrationTest.nrrd
