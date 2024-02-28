@@ -65,6 +65,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   filter->SetImageList(images);
   filter->DebugOn();
+  filter->KeepTransformsOn();
   filter->Update();
 
   auto templateImage = filter->GetTemplateImage();

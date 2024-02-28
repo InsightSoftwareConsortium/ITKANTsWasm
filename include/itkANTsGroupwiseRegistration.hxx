@@ -27,6 +27,53 @@
 #include "itkAverageAffineTransformFunction.h"
 #include "itkLaplacianSharpeningImageFilter.h"
 
+namespace // anonymous namespace for debug functions
+{
+template <typename TransformType>
+void
+WriteTransform(const TransformType * transform, std::string filename)
+{
+  constexpr unsigned Dimension = TransformType::OutputSpaceDimension;
+  using Affine3D = itk::AffineTransform<typename TransformType::ParametersValueType, 3>;
+  using Affine2D = itk::AffineTransform<typename TransformType::ParametersValueType, 2>;
+  using TransformWriterType = itk::TransformFileWriterTemplate<typename TransformType::ParametersValueType>;
+  typename TransformWriterType::Pointer tWriter = TransformWriterType::New();
+  tWriter->SetFileName(filename);
+
+  if (Dimension == 2 && std::string(transform->GetNameOfClass()) == "AffineTransform")
+  {
+    typename Affine2D::ConstPointer t2d = dynamic_cast<const Affine2D *>(transform);
+    // convert into affine which Slicer can read
+    typename Affine3D::MatrixType      m;
+    typename Affine3D::TranslationType t;
+    t.Fill(0);
+    typename Affine3D::InputPointType c;
+    c.Fill(0);
+    for (unsigned int i = 0; i < Dimension; i++)
+    {
+      for (unsigned int j = 0; j < Dimension; j++)
+      {
+        m[i][j] = t2d->GetMatrix()(i, j);
+      }
+      t[i] = t2d->GetMatrix()(i, Dimension);
+      c[i] = t2d->GetCenter()[i];
+    }
+    m(Dimension, Dimension) = 1.0;
+
+    typename Affine3D::Pointer aTr = Affine3D::New();
+    aTr->SetCenter(c);
+    aTr->SetMatrix(m);
+    aTr->SetOffset(t);
+    tWriter->SetInput(aTr);
+  }
+  else
+  {
+    tWriter->SetInput(transform);
+  }
+  tWriter->Update();
+}
+} // namespace
+
 namespace itk
 {
 
@@ -224,8 +271,9 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
-    // m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
-    // m_PairwiseRegistration->DebugOn();
+    m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
+    // m_PairwiseRegistration->SetTypeOfTransform("Affine"); // debug
+    m_PairwiseRegistration->DebugOn();
   }
 
   if (m_Weights.empty())
@@ -265,12 +313,14 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     this->GraftOutput(this->AverageTransformedImages(emptyAffines));
   }
   this->UpdateProgress(0.01);
+  WriteImage(this->GetOutput(), "initialTemplate.nrrd"); // debug
 
   float progressStep = 0.98 / (m_Iterations * m_ImageList.size());
 
   for (unsigned i = 0; i < m_Iterations; ++i)
   {
-    typename TemplateImageType::Pointer                  xavg = this->DuplicateImage(this->GetOutput());
+    typename TemplateImageType::Pointer xavg = this->DuplicateImage(this->GetOutput());
+    WriteImage(xavg, "xavg" + std::to_string(i) + ".nrrd"); // debug
     std::vector<typename AffineType::ConstPointer>       affineList(m_ImageList.size(), nullptr);
     std::vector<typename DisplacementImageType::Pointer> dfList(m_ImageList.size(), nullptr);
     for (unsigned k = 0; k < m_ImageList.size(); ++k)
@@ -294,11 +344,14 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
         // if the composite transform is just an affine, keep it regardless of the setting
         m_TransformList[k] = const_cast<CompositeTransformType *>(compositeTransform);
       }
+      WriteTransform(affineList[k].GetPointer(), "ta" + std::to_string(i) + "_" + std::to_string(k) + ".tfm"); // debug
+      WriteTransform(compositeTransform, "tc" + std::to_string(i) + "_" + std::to_string(k) + ".tfm");         // debug
       this->UpdateProgress(0.01f + progressStep * (i * m_ImageList.size() + (k + 1)));
     }
 
     // average transformed images, start with an all-zero image
     typename TemplateImageType::Pointer xavgNew = this->AverageTransformedImages(affineList);
+    WriteImage(xavgNew, "xavgNew" + std::to_string(i) + ".nrrd"); // debug
 
     typename AffineType::Pointer avgAffine = AffineType::New();
     typename AffineType::Pointer avgAffineInverse = AffineType::New();
@@ -320,7 +373,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     {
       // average the deformation fields
       typename DisplacementImageType::Pointer wavg = this->AverageDisplacementFields(dfList);
-      // WriteImage(wavg, "wavg.nrrd");
+      // WriteImage(wavg, "wavg" + std::to_string(i) + ".nrrd"); // debug
 
       // wavg *= -gradient_step
       typename DisplacementImageType::PixelType wscl;
@@ -335,6 +388,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
       typename DisplacementImageType::Pointer wavgA =
         ResampleToTarget<DisplacementImageType, DisplacementImageType>(wavg, xavgNew, avgAffineInverse);
+      // WriteImage(wavgA, "wavgA" + std::to_string(i) + ".nrrd"); // debug
 
       typename DisplacementTransformType::Pointer wavgTransform = DisplacementTransformType::New();
       wavgTransform->SetDisplacementField(wavgA);
@@ -348,6 +402,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     {
       xavg = ResampleToTarget<TemplateImageType, TemplateImageType>(xavgNew, xavgNew, avgAffineInverse);
     }
+    // WriteImage(xavg, "xavg" + std::to_string(i) + ".nrrd"); // debug
 
     if (m_BlendingWeight > 0)
     {
@@ -367,6 +422,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       xavg = addImageFilter->GetOutput();
     }
 
+    WriteImage(xavg, "avgTemplate" + std::to_string(i) + ".nrrd"); // debug
     this->GraftOutput(xavg);
   }
 

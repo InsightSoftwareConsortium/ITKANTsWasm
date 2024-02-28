@@ -104,6 +104,7 @@ public:
   /** Set/Get whether template update step uses the rigid component. */
   itkSetMacro(UseNoRigid, bool);
   itkGetMacro(UseNoRigid, bool);
+  itkBooleanMacro(UseNoRigid);
 
   /** Set/Get number of template building iterations. */
   itkSetMacro(Iterations, unsigned int);
@@ -116,6 +117,7 @@ public:
    * Off by default, to conserve memory. */
   itkSetMacro(KeepTransforms, bool);
   itkGetMacro(KeepTransforms, bool);
+  itkBooleanMacro(KeepTransforms);
 
   /** Set/Get the weight for each image. */
   itkSetMacro(Weights, std::vector<ParametersValueType>);
@@ -178,13 +180,6 @@ protected:
   MakeOutputTransform(SmartPointer<TTransform> & ptr)
   {
     ptr = TTransform::New();
-  }
-
-  /** Sets the output to the provided forward transform. */
-  void
-  SetTransform(unsigned index, const OutputTransformType * transform)
-  {
-    return this->GetOutput(index)->Set(transform);
   }
 
   typename TemplateImageType::Pointer
