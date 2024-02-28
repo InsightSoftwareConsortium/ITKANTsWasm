@@ -25,7 +25,6 @@
 #include "itkImageDuplicator.h"
 #include "itkWeightedAddImageFilter.h"
 #include "itkAverageAffineTransformFunction.h"
-#include "itkAverageAffineTransformNoRigidFunction.h"
 
 namespace itk
 {
@@ -296,32 +295,20 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     // average transformed images, start with an all-zero image
     typename TemplateImageType::Pointer xavgNew = this->AverageTransformedImages(affineList);
 
-    auto                         affineCenter = affineList[0]->GetCenter();
     typename AffineType::Pointer avgAffine = AffineType::New();
-    if (m_UseNoRigid) // branches only differ in name of averaging function
+    typename AffineType::Pointer avgAffineInverse = AffineType::New();
+
+    using WarperType = AverageAffineTransformFunction<AffineType>;
+    WarperType average_func;
+    average_func.verbose = false;
+    average_func.useRigid = !m_UseNoRigid;
+    for (unsigned k = 0; k < m_ImageList.size(); ++k)
     {
-      using WarperType = itk::AverageAffineTransformNoRigidFunction<AffineType>;
-      WarperType average_func;
-      for (unsigned k = 0; k < m_ImageList.size(); ++k)
-      {
-        average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
-      }
-      auto affineCenter = affineList[0]->GetCenter();
-      average_func.AverageMultipleAffineTransform(affineCenter, avgAffine);
+      average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
     }
-    else
-    {
-      using WarperType = itk::AverageAffineTransformFunction<AffineType>;
-      WarperType average_func;
-      for (unsigned k = 0; k < m_ImageList.size(); ++k)
-      {
-        average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
-      }
-      auto affineCenter = affineList[0]->GetCenter();
-      average_func.AverageMultipleAffineTransform(affineCenter, avgAffine);
-    }
-    typename AffineType::Pointer avgAffineInverse;
-    bool                         inverseExists = avgAffine->GetInverse(avgAffineInverse);
+    average_func.AverageMultipleAffineTransform(affineList[0]->GetCenter(), avgAffine);
+
+    bool inverseExists = avgAffine->GetInverse(avgAffineInverse);
     assert(inverseExists);
 
     if (std::count(dfList.begin(), dfList.end(), nullptr) == 0) // we have all the displacement fields
