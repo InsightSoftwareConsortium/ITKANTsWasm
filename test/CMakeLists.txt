@@ -19,8 +19,10 @@ itk_add_test(NAME itkANTsGroupwiseRegistrationTest
     --compare
     DATA{Baseline/T_template0Result.nrrd}
     ${ITK_TEST_OUTPUT_DIR}/faceTemplate.nrrd
-  itkANTsGroupwiseRegistrationTest ${CMAKE_CURRENT_LIST_DIR}/Input ${ITK_TEST_OUTPUT_DIR} 10
-  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face1.png,REGEX:face[0-9]+\\.png}  # download data at build time
+  itkANTsGroupwiseRegistrationTest
+  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
+  ${ITK_TEST_OUTPUT_DIR}
+  10
   )
 
 

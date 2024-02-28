@@ -38,7 +38,8 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   itk::TxtTransformIOFactory::RegisterOneFactory();
 
-  std::string inDir = argv[1];
+  std::string firstArg = argv[1];
+  std::string inDir = firstArg.substr(0, firstArg.size() - 11); // cut off /face10.png
   std::string outDir = argv[2];
 
   unsigned numberOfFaces = 10;
