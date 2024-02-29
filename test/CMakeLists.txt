@@ -4,6 +4,7 @@ set(ANTsWasmTests
   itkANTSRegistrationTest.cxx
   itkANTSRegistrationBasicTests.cxx
   itkANTsGroupwiseRegistrationTest.cxx
+  itkANTsGroupwiseRegistrationTest3D.cxx
   )
 
 CreateTestDriver(ANTsWasm "${ANTsWasm-Test_LIBRARIES}" "${ANTsWasmTests}")
@@ -23,6 +24,11 @@ itk_add_test(NAME itkANTsGroupwiseRegistrationTest
   DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
   ${ITK_TEST_OUTPUT_DIR}
   10
+  )
+
+itk_add_test(NAME itkANTsGroupwiseRegistrationTest3D
+  COMMAND ANTsWasmTestDriver itkANTsGroupwiseRegistrationTest3D
+  C:/a/lola11CT ${ITK_TEST_OUTPUT_DIR}
   )
 
 

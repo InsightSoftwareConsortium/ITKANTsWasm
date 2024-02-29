@@ -186,7 +186,9 @@ itk::ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Re
   }
   resampleFilter->SetOutputParametersFromImage(target);
   resampleFilter->Update();
-  return resampleFilter->GetOutput();
+  typename TOutputImage::Pointer result = resampleFilter->GetOutput();
+  result->DisconnectPipeline();
+  return result;
 }
 
 

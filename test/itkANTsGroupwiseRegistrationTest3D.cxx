@@ -19,68 +19,50 @@
 #include "itkANTsGroupwiseRegistration.h"
 
 #include "itkImageFileWriter.h"
-#include "itkSimpleFilterWatcher.h"
 #include "itkTxtTransformIOFactory.h"
 #include "itkTestingMacros.h"
 
 
 int
-itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
+itkANTsGroupwiseRegistrationTest3D(int argc, char * argv[])
 {
-  if (argc < 3)
+  if (argc < 2)
   {
     std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
-    std::cerr << " inputDirectory outputDirectory [numberOfFaces]";
+    std::cerr << " inputDirectory outputDirectory";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
 
   itk::TxtTransformIOFactory::RegisterOneFactory();
 
-  std::string firstArg = argv[1];
-  std::string inDir = firstArg.substr(0, firstArg.size() - 11); // cut off /face10.png
+  std::string inDir = argv[1];
   std::string outDir = argv[2];
 
-  unsigned numberOfFaces = 10;
-  if (argc > 3)
-  {
-    numberOfFaces = std::stoul(argv[3]);
-  }
+  unsigned numberOfImages = 3;
 
-  using ImageType = itk::Image<unsigned char, 2>;
-  using FloatImageType = itk::Image<float, 2>;
-  using FilterType = itk::ANTsGroupwiseRegistration<ImageType, FloatImageType, float>;
+  using ImageType = itk::Image<signed short, 3>;
+  using FloatImageType = itk::Image<float, 3>;
+  using FilterType = itk::ANTsGroupwiseRegistration<ImageType, ImageType, float>;
   typename FilterType::Pointer filter = FilterType::New();
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTsGroupwiseRegistration, ImageToImageFilter);
 
-  itk::SimpleFilterWatcher        watcher(filter, "ANTs groupwise registration");
   std::vector<ImageType::Pointer> images;
-  for (unsigned i = 1; i <= numberOfFaces; ++i)
+  for (unsigned i = 1; i <= numberOfImages; ++i)
   {
-    std::string fileName = inDir + "/face" + std::to_string(i) + ".png";
+    std::string fileName = inDir + "/lola11-0" + std::to_string(i) + ".nrrd";
     auto        image = itk::ReadImage<ImageType>(fileName);
     images.push_back(image);
   }
 
   filter->SetImageList(images);
+  filter->SetInitialTemplateImage(images[images.size() / 2]);
   filter->DebugOn();
-  filter->KeepTransformsOn();
   filter->Update();
 
   auto templateImage = filter->GetTemplateImage();
   templateImage->DisconnectPipeline();
-  itk::WriteImage(templateImage, outDir + "/faceTemplate.nrrd");
-
-  using TransformWriter = itk::TransformFileWriterTemplate<float>;
-  TransformWriter::Pointer transformWriter = TransformWriter::New();
-  for (unsigned i = 1; i < numberOfFaces; ++i)
-  {
-    auto fTransform = filter->GetTransform(i);
-    transformWriter->SetFileName(outDir + "/face" + std::to_string(i) + ".tfm");
-    transformWriter->SetInput(fTransform);
-    transformWriter->Update();
-  }
+  itk::WriteImage(templateImage, outDir + "/chestTemplate.nrrd");
 
   return EXIT_SUCCESS;
 }
