@@ -247,11 +247,14 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
     for (unsigned i = 0; i < m_ImageList.size(); ++i)
     {
-      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, ImageType, TemplateImageType>;
+      typename TemplateImageType::Pointer resampledImage =
+        ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[i], average, nullptr);
+
+      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
       typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
       addImageFilter->SetInPlace(true);
       addImageFilter->SetInput1(average);
-      addImageFilter->SetInput2(m_ImageList[i]);
+      addImageFilter->SetInput2(resampledImage);
       addImageFilter->SetAlpha(1.0 - m_Weights[i]);
       addImageFilter->Update();
       average = addImageFilter->GetOutput();
@@ -260,7 +263,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     this->GraftOutput(average);
   }
   this->UpdateProgress(0.01);
-  WriteImage(this->GetOutput(), "initialTemplate.nrrd"); // debug
+  // WriteImage(this->GetOutput(), "initialTemplate.nrrd"); // debug
 
   float progressStep = 0.98 / (m_Iterations * m_ImageList.size());
 
@@ -271,10 +274,10 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     using DisplacementImageType = typename DisplacementTransformType::DisplacementFieldType;
 
     typename TemplateImageType::Pointer xavg = this->DuplicateImage(this->GetOutput());
-    WriteImage(xavg, "xavg" + std::to_string(i) + ".nrrd"); // debug
+    // WriteImage(xavg, "xavg" + std::to_string(i) + ".nrrd"); // debug
     typename TemplateImageType::Pointer xavgNew = TemplateImageType::New();
-    xavgNew->CopyInformation(m_ImageList[0]);
-    xavgNew->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    xavgNew->CopyInformation(xavg);
+    xavgNew->SetRegions(xavg->GetLargestPossibleRegion());
     xavgNew->Allocate(true); // initialize to zero
     typename DisplacementImageType::Pointer wavg{ nullptr };
 
@@ -286,7 +289,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       m_PairwiseRegistration->Update();
 
       const CompositeTransformType * compositeTransform = m_PairwiseRegistration->GetForwardTransform();
-
+      WriteTransform(compositeTransform, "tc" + std::to_string(i) + "_" + std::to_string(k) + ".tfm"); // debug
       affineList[k] = dynamic_cast<const AffineType *>(compositeTransform->GetFrontTransform());
       auto dfTransform = dynamic_cast<const DisplacementTransformType *>(compositeTransform->GetBackTransform());
 
@@ -340,11 +343,9 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
         // if the composite transform is just an affine, keep it regardless of the setting
         m_TransformList[k] = const_cast<CompositeTransformType *>(compositeTransform);
       }
-      WriteTransform(affineList[k].GetPointer(), "ta" + std::to_string(i) + "_" + std::to_string(k) + ".tfm"); // debug
-      WriteTransform(compositeTransform, "tc" + std::to_string(i) + "_" + std::to_string(k) + ".tfm");         // debug
       this->UpdateProgress(0.01f + progressStep * (i * m_ImageList.size() + (k + 1)));
     } // for k in m_ImageList
-    WriteImage(xavgNew, "xavgNew" + std::to_string(i) + ".nrrd"); // debug
+    // WriteImage(xavgNew, "xavgNew" + std::to_string(i) + ".nrrd"); // debug
 
     typename AffineType::Pointer avgAffine = AffineType::New();
     typename AffineType::Pointer avgAffineInverse = AffineType::New();
@@ -411,7 +412,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       xavg = addImageFilter->GetOutput();
     }
 
-    WriteImage(xavg, "avgTemplate" + std::to_string(i) + ".nrrd"); // debug
+    // WriteImage(xavg, "avgTemplate" + std::to_string(i) + ".nrrd"); // debug
     this->GraftOutput(xavg);
   }
 
