@@ -193,77 +193,6 @@ itk::ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Re
 
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
-auto
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::AverageTransformedImages(
-  const std::vector<typename AffineType::ConstPointer> & affineList) -> typename TemplateImageType::Pointer
-{
-  assert(m_ImageList.size() == affineList.size());
-
-  typename TemplateImageType::Pointer average = TemplateImageType::New();
-  average->CopyInformation(m_ImageList[0]);
-  average->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
-  average->Allocate(true); // initialize to zero
-
-  for (unsigned i = 0; i < m_ImageList.size(); ++i)
-  {
-    typename TemplateImageType::Pointer resampledImage =
-      ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[i], average, affineList[i]);
-
-    using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
-    typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
-    addImageFilter->SetInPlace(true);
-    addImageFilter->SetInput1(average);
-    addImageFilter->SetInput2(resampledImage);
-    addImageFilter->SetAlpha(1.0 - m_Weights[i]);
-    addImageFilter->Update();
-    average = addImageFilter->GetOutput();
-  }
-
-  return average;
-}
-
-template <typename TImage, typename TTemplateImage, typename TParametersValueType>
-auto
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::AverageDisplacementFields(
-  const std::vector<typename DisplacementImageType::Pointer> & dfList) -> typename DisplacementImageType::Pointer
-{
-  assert(dfList.size() == m_Weights.size());
-
-  typename DisplacementImageType::Pointer average = DisplacementImageType::New();
-  average->CopyInformation(dfList[0]);
-  average->SetRegions(dfList[0]->GetLargestPossibleRegion());
-  average->Allocate(true); // initialize to zero
-
-  for (unsigned i = 0; i < dfList.size(); ++i)
-  {
-    assert(average->IsSameImageGeometryAs(dfList[i]));
-
-    auto weightedVectorAdd = [this, i](const typename DisplacementImageType::PixelType & a,
-                                       const typename DisplacementImageType::PixelType & b) {
-      typename DisplacementImageType::PixelType result{ a };
-      for (unsigned j = 0; j < DisplacementImageType::PixelType::Dimension; ++j)
-      {
-        result[j] = (1.0 - this->m_Weights[i]) * a[j] + this->m_Weights[i] * b[j];
-      }
-      return result;
-    };
-
-    using AddImageFilterType =
-      BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
-    typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
-    addImageFilter->SetInPlace(true);
-    addImageFilter->SetFunctor(weightedVectorAdd);
-    addImageFilter->SetInput1(average);
-    addImageFilter->SetInput2(dfList[i]);
-    addImageFilter->Update();
-    average = addImageFilter->GetOutput();
-  }
-
-  return average;
-}
-
-
-template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
 ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateData()
 {
@@ -303,7 +232,6 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     itkExceptionMacro("Initial template must be a float-pixel image.");
   }
 
-  std::vector<typename AffineType::ConstPointer> emptyAffines(m_ImageList.size(), nullptr);
   if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
   {
     // copy the initial template into the output (the current average template)
@@ -312,7 +240,24 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   else
   {
     // create a simple average of all the input images
-    this->GraftOutput(this->AverageTransformedImages(emptyAffines));
+    typename TemplateImageType::Pointer average = TemplateImageType::New();
+    average->CopyInformation(m_ImageList[0]);
+    average->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    average->Allocate(true); // initialize to zero
+
+    for (unsigned i = 0; i < m_ImageList.size(); ++i)
+    {
+      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, ImageType, TemplateImageType>;
+      typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+      addImageFilter->SetInPlace(true);
+      addImageFilter->SetInput1(average);
+      addImageFilter->SetInput2(m_ImageList[i]);
+      addImageFilter->SetAlpha(1.0 - m_Weights[i]);
+      addImageFilter->Update();
+      average = addImageFilter->GetOutput();
+    }
+
+    this->GraftOutput(average);
   }
   this->UpdateProgress(0.01);
   WriteImage(this->GetOutput(), "initialTemplate.nrrd"); // debug
@@ -321,10 +266,19 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
   for (unsigned i = 0; i < m_Iterations; ++i)
   {
+    using AffineType = AffineTransform<ParametersValueType, ImageDimension>;
+    using DisplacementTransformType = DisplacementFieldTransform<ParametersValueType, ImageDimension>;
+    using DisplacementImageType = typename DisplacementTransformType::DisplacementFieldType;
+
     typename TemplateImageType::Pointer xavg = this->DuplicateImage(this->GetOutput());
     WriteImage(xavg, "xavg" + std::to_string(i) + ".nrrd"); // debug
-    std::vector<typename AffineType::ConstPointer>       affineList(m_ImageList.size(), nullptr);
-    std::vector<typename DisplacementImageType::Pointer> dfList(m_ImageList.size(), nullptr);
+    typename TemplateImageType::Pointer xavgNew = TemplateImageType::New();
+    xavgNew->CopyInformation(m_ImageList[0]);
+    xavgNew->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    xavgNew->Allocate(true); // initialize to zero
+    typename DisplacementImageType::Pointer wavg{ nullptr };
+
+    std::vector<typename AffineType::ConstPointer> affineList(m_ImageList.size(), nullptr);
     for (unsigned k = 0; k < m_ImageList.size(); ++k)
     {
       m_PairwiseRegistration->SetFixedImage(xavg);
@@ -335,11 +289,51 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
       affineList[k] = dynamic_cast<const AffineType *>(compositeTransform->GetFrontTransform());
       auto dfTransform = dynamic_cast<const DisplacementTransformType *>(compositeTransform->GetBackTransform());
-      auto dfNonConstTransform = const_cast<DisplacementTransformType *>(dfTransform);
-      if (dfNonConstTransform)
+
+      // average transformed images (starts with an all-zero image)
+      typename TemplateImageType::Pointer resampledImage =
+        ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[k], xavg, affineList[k]);
+
+      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
+      typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+      addImageFilter->SetInPlace(true);
+      addImageFilter->SetInput1(xavgNew);
+      addImageFilter->SetInput2(resampledImage);
+      addImageFilter->SetAlpha(1.0 - m_Weights[k]);
+      addImageFilter->Update();
+      xavgNew = addImageFilter->GetOutput();
+
+      // average the deformation fields
+      if (k == 0 && dfTransform != nullptr) // transforms have a deformation field component
       {
-        dfList[k] = dfNonConstTransform->GetDisplacementField();
+        auto firstDF = dfTransform->GetDisplacementField();
+        wavg = DisplacementImageType::New();
+        wavg->CopyInformation(firstDF);
+        wavg->SetRegions(firstDF->GetLargestPossibleRegion());
+        wavg->Allocate(true); // initialize to zero
       }
+      assert(wavg->IsSameImageGeometryAs(dfTransform->GetDisplacementField()));
+
+      auto weightedVectorAdd = [this, k](const typename DisplacementImageType::PixelType & a,
+                                         const typename DisplacementImageType::PixelType & b) {
+        typename DisplacementImageType::PixelType result{ a };
+        for (unsigned j = 0; j < DisplacementImageType::PixelType::Dimension; ++j)
+        {
+          result[j] = (1.0 - this->m_Weights[k]) * a[j] + this->m_Weights[k] * b[j];
+        }
+        return result;
+      };
+
+      using VectorAddImageFilterType =
+        BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
+      typename VectorAddImageFilterType::Pointer vectorAddImageFilter = VectorAddImageFilterType::New();
+      vectorAddImageFilter->SetInPlace(true);
+      vectorAddImageFilter->SetFunctor(weightedVectorAdd);
+      vectorAddImageFilter->SetInput1(wavg);
+      vectorAddImageFilter->SetInput2(dfTransform->GetDisplacementField());
+      vectorAddImageFilter->Update();
+      wavg = vectorAddImageFilter->GetOutput();
+      // we no longer need the displacement field k
 
       if (m_KeepTransforms || (compositeTransform->GetNumberOfTransforms() == 1 && affineList[k] != nullptr))
       {
@@ -349,10 +343,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       WriteTransform(affineList[k].GetPointer(), "ta" + std::to_string(i) + "_" + std::to_string(k) + ".tfm"); // debug
       WriteTransform(compositeTransform, "tc" + std::to_string(i) + "_" + std::to_string(k) + ".tfm");         // debug
       this->UpdateProgress(0.01f + progressStep * (i * m_ImageList.size() + (k + 1)));
-    }
-
-    // average transformed images, start with an all-zero image
-    typename TemplateImageType::Pointer xavgNew = this->AverageTransformedImages(affineList);
+    } // for k in m_ImageList
     WriteImage(xavgNew, "xavgNew" + std::to_string(i) + ".nrrd"); // debug
 
     typename AffineType::Pointer avgAffine = AffineType::New();
@@ -371,12 +362,8 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     bool inverseExists = avgAffine->GetInverse(avgAffineInverse);
     assert(inverseExists);
 
-    if (std::count(dfList.begin(), dfList.end(), nullptr) == 0) // we have all the displacement fields
+    if (wavg != nullptr) // we have displacement fields
     {
-      // average the deformation fields
-      typename DisplacementImageType::Pointer wavg = this->AverageDisplacementFields(dfList);
-      // WriteImage(wavg, "wavg" + std::to_string(i) + ".nrrd"); // debug
-
       // wavg *= -gradient_step
       typename DisplacementImageType::PixelType wscl;
       wscl.Fill(-1.0 * this->GetGradientStep());

@@ -188,17 +188,6 @@ protected:
                    const TemplateImageType *            target,
                    typename TransformType::ConstPointer transform);
 
-  using AffineType = AffineTransform<ParametersValueType, ImageDimension>;
-
-  typename TemplateImageType::Pointer
-  AverageTransformedImages(const std::vector<typename AffineType::ConstPointer> & affinelist);
-
-  using DisplacementTransformType = DisplacementFieldTransform<ParametersValueType, ImageDimension>;
-  using DisplacementImageType = typename DisplacementTransformType::DisplacementFieldType;
-
-  typename DisplacementImageType::Pointer
-  AverageDisplacementFields(const std::vector<typename DisplacementImageType::Pointer> & dfList);
-
   ParametersValueType m_GradientStep{ 0.2 };
   ParametersValueType m_BlendingWeight{ 0.75 };
   bool                m_UseNoRigid{ true };
