@@ -97,19 +97,20 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
   using namespace print_helper;
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "GradientStep: " << this->m_GradientStep << std::endl;
-  os << indent << "BlendingWeight: " << this->m_BlendingWeight << std::endl;
-  os << indent << "UseNoRigid: " << (this->m_UseNoRigid ? "On" : "Off") << std::endl;
-  os << indent << "Iterations: " << this->m_Iterations << std::endl;
-  os << indent << "Weights: " << this->m_Weights << std::endl;
+  os << indent << "GradientStep: " << this->m_GradientStep << '\n';
+  os << indent << "BlendingWeight: " << this->m_BlendingWeight << '\n';
+  os << indent << "UseNoRigid: " << (this->m_UseNoRigid ? "On" : "Off") << '\n';
+  os << indent << "Iterations: " << this->m_Iterations << '\n';
+  os << indent << "Weights: " << this->m_Weights << '\n';
 
-  os << indent << "ImageList: " << std::endl;
-  // unsigned i = 0;
-  // for (const auto & image : this->m_ImageList)
-  // {
-  //   os << indent.GetNextIndent() << "Image" << i++ << ": ";
-  //   image->Print(os, indent.GetNextIndent());
-  // }
+  os << indent << "ImageList: " << '\n';
+  unsigned i = 0;
+  for (const auto & image : this->m_ImageList)
+  {
+    os << indent.GetNextIndent() << "Image" << i++ << ": ";
+    //image->Print(os, indent.GetNextIndent());
+    os << image.GetPointer() << '\n';
+  }
 
   os << indent << "PairwiseRegistration: ";
   if (this->m_PairwiseRegistration)
