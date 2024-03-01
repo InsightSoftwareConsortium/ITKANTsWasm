@@ -36,7 +36,7 @@ ImageType = itk.Image[PixelType, Dimension]
 assert ImageType == type(first_image)
 TemplateImageType = itk.Image[itk.F, Dimension]
 
-gwr = itk.ANTsGroupwiseRegistration[ImageType, TemplateImageType, itk.D].New()
+gwr = itk.ANTsGroupwiseRegistration[ImageType, TemplateImageType, itk.F].New()
 
 if args.initial_template is not None:
     print(f"Reading initial template: {args.initial_template}")
