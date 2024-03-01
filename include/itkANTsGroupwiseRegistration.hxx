@@ -198,13 +198,13 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 {
   this->UpdateProgress(0.0);
 
-  if (!m_PairwiseRegistration) // TODO: allow setting a custom pairwise registration
+  if (!m_PairwiseRegistration) // a custom pairwise registration is not set
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
     // m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
     // m_PairwiseRegistration->SetTypeOfTransform("Affine"); // debug
-    m_PairwiseRegistration->DebugOn();
+    // m_PairwiseRegistration->DebugOn();
   }
 
   if (m_Weights.empty())
@@ -306,7 +306,6 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       addImageFilter->Update();
       xavgNew = addImageFilter->GetOutput();
 
-      // average the deformation fields
       if (k == 0 && dfTransform != nullptr) // transforms have a deformation field component
       {
         auto firstDF = dfTransform->GetDisplacementField();
@@ -315,28 +314,32 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
         wavg->SetRegions(firstDF->GetLargestPossibleRegion());
         wavg->Allocate(true); // initialize to zero
       }
-      assert(wavg->IsSameImageGeometryAs(dfTransform->GetDisplacementField()));
 
-      auto weightedVectorAdd = [this, k](const typename DisplacementImageType::PixelType & a,
-                                         const typename DisplacementImageType::PixelType & b) {
-        typename DisplacementImageType::PixelType result{ a };
-        for (unsigned j = 0; j < DisplacementImageType::PixelType::Dimension; ++j)
-        {
-          result[j] = (1.0 - this->m_Weights[k]) * a[j] + this->m_Weights[k] * b[j];
-        }
-        return result;
-      };
+      if (wavg != nullptr) // average the deformation fields
+      {
+        // average the deformation fields
+        assert(wavg->IsSameImageGeometryAs(dfTransform->GetDisplacementField()));
 
-      using VectorAddImageFilterType =
-        BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
-      typename VectorAddImageFilterType::Pointer vectorAddImageFilter = VectorAddImageFilterType::New();
-      vectorAddImageFilter->SetInPlace(true);
-      vectorAddImageFilter->SetFunctor(weightedVectorAdd);
-      vectorAddImageFilter->SetInput1(wavg);
-      vectorAddImageFilter->SetInput2(dfTransform->GetDisplacementField());
-      vectorAddImageFilter->Update();
-      wavg = vectorAddImageFilter->GetOutput();
-      // we no longer need the displacement field k
+        auto weightedVectorAdd = [this, k](const typename DisplacementImageType::PixelType & a,
+                                           const typename DisplacementImageType::PixelType & b) {
+          typename DisplacementImageType::PixelType result{ a };
+          for (unsigned j = 0; j < DisplacementImageType::PixelType::Dimension; ++j)
+          {
+            result[j] = (1.0 - this->m_Weights[k]) * a[j] + this->m_Weights[k] * b[j];
+          }
+          return result;
+        };
+
+        using VectorAddImageFilterType =
+          BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
+        typename VectorAddImageFilterType::Pointer vectorAddImageFilter = VectorAddImageFilterType::New();
+        vectorAddImageFilter->SetInPlace(true);
+        vectorAddImageFilter->SetFunctor(weightedVectorAdd);
+        vectorAddImageFilter->SetInput1(wavg);
+        vectorAddImageFilter->SetInput2(dfTransform->GetDisplacementField());
+        vectorAddImageFilter->Update();
+        wavg = vectorAddImageFilter->GetOutput();
+      }
 
       if (m_KeepTransforms || (compositeTransform->GetNumberOfTransforms() == 1 && affineList[k] != nullptr))
       {

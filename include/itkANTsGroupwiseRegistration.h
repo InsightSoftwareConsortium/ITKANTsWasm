@@ -140,13 +140,18 @@ public:
     m_ImageList.clear();
   }
 
-  /** Returns the transforms which register the image with the provided index to the average template. */
+  /** Returns the transform which registers the image with the provided index to the average template.
+   * To make sure this is available, KeepTransformsOn() should be set be called. */
   const OutputTransformType *
   GetTransform(unsigned imageIndex) const
   {
     return m_TransformList[imageIndex];
   }
 
+  using PairwiseType = ANTSRegistration<TemplateImageType, ImageType, ParametersValueType>;
+  /** Set/Get step size for shape update gradient. */
+  itkSetObjectMacro(PairwiseRegistration, PairwiseType);
+  itkGetModifiableObjectMacro(PairwiseRegistration, PairwiseType);
 
   using ProcessObject::AddInput;
   using ProcessObject::RemoveInput;
@@ -159,8 +164,6 @@ protected:
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
   DataObject::Pointer MakeOutput(DataObjectPointerArraySizeType) override;
-
-  using PairwiseType = ANTSRegistration<TemplateImageType, ImageType, ParametersValueType>;
 
   void
   PrintSelf(std::ostream & os, Indent indent) const override;
