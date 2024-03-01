@@ -48,8 +48,7 @@ for i, input_filename in enumerate(args.input_image):
     print(f"Reading {input_filename}")
     image = itk.imread(input_filename)
     images.append(image)
-    gwr.AddImage(images[i])
-# gwr.SetImageList(images)  # crashes for now
+gwr.SetImageList(images)
 print(gwr)
 
 print("Performing groupwise registration. This will take a while...")

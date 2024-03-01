@@ -141,14 +141,11 @@ public:
   }
 
   /** Returns the transforms which register the image with the provided index to the average template. */
-  const typename OutputTransformType::ConstPointer
+  const OutputTransformType *
   GetTransform(unsigned imageIndex) const
   {
     return m_TransformList[imageIndex];
   }
-
-  /** Get the list of transforms which register the corresponding image to the average template. */
-  itkGetConstReferenceMacro(TransformList, std::vector<typename OutputTransformType::Pointer>);
 
 
   using ProcessObject::AddInput;
