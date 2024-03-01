@@ -37,6 +37,8 @@ assert ImageType == type(first_image)
 TemplateImageType = itk.Image[itk.F, Dimension]
 
 gwr = itk.ANTsGroupwiseRegistration[ImageType, TemplateImageType, itk.F].New()
+# pairwise registration has different order of template parameters
+pwr = itk.ANTSRegistration[TemplateImageType, ImageType, itk.F].New()
 
 if args.initial_template is not None:
     print(f"Reading initial template: {args.initial_template}")
@@ -49,6 +51,17 @@ for i, input_filename in enumerate(args.input_image):
     image = itk.imread(input_filename)
     images.append(image)
 gwr.SetImageList(images)
+
+gwr.SetIterations(4)
+gwr.SetGradientStep(0.15)
+
+pwr.SetTypeOfTransform("SyN")  # example used BSplineSyN, but we have to choose BSpline OR SyN
+pwr.SetSynMetric("CC")
+pwr.SetSynIterations([100, 100, 100, 70, 50, 10])
+pwr.SetShrinkFactors([16, 12, 8, 4, 2, 1])
+pwr.SetSmoothingSigmas([4, 4, 4, 2, 1, 0])
+
+gwr.SetPairwiseRegistration(pwr)
 print(gwr)
 
 print("Performing groupwise registration. This will take a while...")

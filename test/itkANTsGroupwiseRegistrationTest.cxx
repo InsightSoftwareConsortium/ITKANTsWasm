@@ -64,6 +64,18 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   }
 
   filter->SetImageList(images);
+  filter->SetIterations(4);
+  filter->SetGradientStep(0.15);
+
+  using PairwiseType = itk::ANTSRegistration<FloatImageType, ImageType, float>;
+  typename PairwiseType::Pointer pairwiseRegistration = PairwiseType::New();
+  pairwiseRegistration->SetTypeOfTransform("SyN");
+  pairwiseRegistration->SetSynMetric("CC");
+  pairwiseRegistration->SetSynIterations({ 100, 100, 100, 70, 50, 10 });
+  pairwiseRegistration->SetShrinkFactors({ 16, 12, 8, 4, 2, 1 });
+  pairwiseRegistration->SetSmoothingSigmas({ 4, 4, 4, 2, 1, 0 });
+  filter->SetPairwiseRegistration(pairwiseRegistration);
+
   filter->DebugOn();
   filter->KeepTransformsOn();
   filter->Update();
