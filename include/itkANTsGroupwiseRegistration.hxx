@@ -273,7 +273,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
-    m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
+    // m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
     // m_PairwiseRegistration->SetTypeOfTransform("Affine"); // debug
     m_PairwiseRegistration->DebugOn();
   }
