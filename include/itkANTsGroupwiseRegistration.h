@@ -157,6 +157,17 @@ public:
   using ProcessObject::RemoveInput;
   using ProcessObject::GetInput;
 
+  /** This filter only deals with whole images. */
+  void
+  GenerateInputRequestedRegion() override
+  {
+    auto * inputPtr = dynamic_cast<TTemplateImage *>(this->GetInput(0));
+    inputPtr->SetRequestedRegionToLargestPossibleRegion();
+  }
+
+  void
+  GenerateOutputInformation() override;
+
 protected:
   ANTsGroupwiseRegistration();
   ~ANTsGroupwiseRegistration() override = default;

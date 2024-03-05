@@ -108,7 +108,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
   for (const auto & image : this->m_ImageList)
   {
     os << indent.GetNextIndent() << "Image" << i++ << ": ";
-    //image->Print(os, indent.GetNextIndent());
+    // image->Print(os, indent.GetNextIndent());
     os << image.GetPointer() << '\n';
   }
 
@@ -195,16 +195,12 @@ itk::ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Re
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateData()
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateOutputInformation()
 {
-  this->UpdateProgress(0.0);
-
   if (!m_PairwiseRegistration) // a custom pairwise registration is not set
   {
     m_PairwiseRegistration = PairwiseType::New();
     m_PairwiseRegistration->SetTypeOfTransform("SyN");
-    // m_PairwiseRegistration->SetTypeOfTransform("QuickRigid"); // debug
-    // m_PairwiseRegistration->SetTypeOfTransform("Affine"); // debug
     // m_PairwiseRegistration->DebugOn();
   }
 
@@ -233,6 +229,31 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     itkExceptionMacro("Initial template must be a float-pixel image.");
   }
 
+  TTemplateImage * outputPtr = this->GetOutput();
+  if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
+  {
+    // copy the initial template into the output (the current average template)
+    outputPtr->CopyInformation(initialTemplate);
+    outputPtr->SetLargestPossibleRegion(initialTemplate->GetLargestPossibleRegion());
+  }
+  else
+  {
+    // get the output metadata from the first image
+    outputPtr->CopyInformation(m_ImageList[0]);
+    outputPtr->SetLargestPossibleRegion(m_ImageList[0]->GetLargestPossibleRegion());
+  }
+}
+
+
+template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+void
+ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateData()
+{
+  this->UpdateProgress(0.0);
+
+  this->GenerateOutputInformation();
+
+  typename TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
   if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
   {
     // copy the initial template into the output (the current average template)
@@ -418,10 +439,13 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       xavg = addImageFilter->GetOutput();
     }
 
+    // xavg->DisconnectPipeline(); // does not help
+    // xavg->Modified();  // does not help
     // WriteImage(xavg, "avgTemplate" + std::to_string(i) + ".nrrd"); // debug
     this->GraftOutput(xavg);
   }
 
+  // this->GetOutput()->Modified();  // does not help
   this->UpdateProgress(1.0);
 }
 
