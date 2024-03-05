@@ -388,8 +388,8 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       wavgTransform->SetDisplacementField(wavgA);
 
       typename CompositeTransformType::Pointer combinedTransform = CompositeTransformType::New();
-      combinedTransform->AddTransform(wavgTransform);
       combinedTransform->AddTransform(avgAffineInverse);
+      combinedTransform->AddTransform(wavgTransform);
       xavg = ResampleToTarget<TemplateImageType, TemplateImageType>(xavgNew, xavgNew, combinedTransform);
     }
     else // we only have the affine transforms
