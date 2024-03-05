@@ -290,7 +290,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       m_PairwiseRegistration->Update();
 
       const CompositeTransformType * compositeTransform = m_PairwiseRegistration->GetForwardTransform();
-      WriteTransform(compositeTransform, "tc" + std::to_string(i) + "_" + std::to_string(k) + ".tfm"); // debug
+      // WriteTransform(compositeTransform, "tc" + std::to_string(i) + "_" + std::to_string(k) + ".tfm"); // debug
       affineList[k] = dynamic_cast<const AffineType *>(compositeTransform->GetFrontTransform());
       auto dfTransform = dynamic_cast<const DisplacementTransformType *>(compositeTransform->GetBackTransform());
 
@@ -366,6 +366,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
     bool inverseExists = avgAffine->GetInverse(avgAffineInverse);
     assert(inverseExists);
+    // WriteTransform(avgAffineInverse.GetPointer(), "avgAffineInverse" + std::to_string(i) + ".tfm"); // debug
 
     if (wavg != nullptr) // we have displacement fields
     {
@@ -391,6 +392,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       combinedTransform->AddTransform(avgAffineInverse);
       combinedTransform->AddTransform(wavgTransform);
       xavg = ResampleToTarget<TemplateImageType, TemplateImageType>(xavgNew, xavgNew, combinedTransform);
+      // WriteTransform(combinedTransform.GetPointer(), "combinedTransform" + std::to_string(i) + ".tfm"); // debug
     }
     else // we only have the affine transforms
     {

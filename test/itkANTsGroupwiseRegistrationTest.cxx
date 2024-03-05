@@ -31,7 +31,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   {
     std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
-    std::cerr << " inputDirectory outputDirectory [numberOfFaces]";
+    std::cerr << " inputDirectory outputTemplateName [numberOfFaces] [typeOfTransform]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
@@ -40,12 +40,18 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   std::string firstArg = argv[1];
   std::string inDir = firstArg.substr(0, firstArg.size() - 11); // cut off /face10.png
-  std::string outDir = argv[2];
+  std::string outName = argv[2];
 
   unsigned numberOfFaces = 10;
   if (argc > 3)
   {
     numberOfFaces = std::stoul(argv[3]);
+  }
+
+  std::string typeOfTransform = "SyN";
+  if (argc > 4)
+  {
+    typeOfTransform = argv[4];
   }
 
   using ImageType = itk::Image<unsigned char, 2>;
@@ -69,9 +75,12 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   using PairwiseType = itk::ANTSRegistration<FloatImageType, ImageType, float>;
   typename PairwiseType::Pointer pairwiseRegistration = PairwiseType::New();
-  pairwiseRegistration->SetTypeOfTransform("SyN");
+  pairwiseRegistration->SetTypeOfTransform(typeOfTransform);
   pairwiseRegistration->SetSynMetric("CC");
-  pairwiseRegistration->SetSynIterations({ 100, 100, 100, 70, 50, 10 });
+  pairwiseRegistration->SetAffineMetric("CC");
+  std::vector<unsigned> iterations{ 100, 100, 100, 70, 50, 10 };
+  pairwiseRegistration->SetAffineIterations(iterations);
+  pairwiseRegistration->SetSynIterations(iterations);
   pairwiseRegistration->SetShrinkFactors({ 16, 12, 8, 4, 2, 1 });
   pairwiseRegistration->SetSmoothingSigmas({ 4, 4, 4, 2, 1, 0 });
   filter->SetPairwiseRegistration(pairwiseRegistration);
@@ -82,14 +91,15 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
 
   auto templateImage = filter->GetTemplateImage();
   templateImage->DisconnectPipeline();
-  itk::WriteImage(templateImage, outDir + "/faceTemplate.nrrd");
+  std::cout << "templateImage: " << *templateImage;
+  itk::WriteImage(templateImage, outName);
 
   using TransformWriter = itk::TransformFileWriterTemplate<float>;
   TransformWriter::Pointer transformWriter = TransformWriter::New();
-  for (unsigned i = 1; i < numberOfFaces; ++i)
+  for (unsigned i = 0; i < numberOfFaces; ++i)
   {
     auto fTransform = filter->GetTransform(i);
-    transformWriter->SetFileName(outDir + "/face" + std::to_string(i) + ".tfm");
+    transformWriter->SetFileName(outName + "_" + std::to_string(i + 1) + ".tfm");
     transformWriter->SetInput(fTransform);
     transformWriter->Update();
   }

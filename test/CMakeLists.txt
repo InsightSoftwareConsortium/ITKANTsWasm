@@ -15,15 +15,40 @@ itk_add_test(NAME itkANTSRegistrationBasicTests
   itkANTSRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
   )
 
-itk_add_test(NAME itkANTsGroupwiseRegistrationTest
+itk_add_test(NAME itkANTsGroupwiseRegistrationTestAffine
   COMMAND ANTsWasmTestDriver
     --compare
     DATA{Baseline/T_template0Result337.nrrd}
-    ${ITK_TEST_OUTPUT_DIR}/faceTemplate.nrrd
+    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestAffine.nrrd
   itkANTsGroupwiseRegistrationTest
   DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
-  ${ITK_TEST_OUTPUT_DIR}
+  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestAffine.nrrd
   10
+  Affine
+  )
+
+itk_add_test(NAME itkANTsGroupwiseRegistrationTestSyN
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/T_template0Result337.nrrd}
+    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestSyN.nrrd
+  itkANTsGroupwiseRegistrationTest
+  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
+  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestSyN.nrrd
+  10
+  SyNOnly
+  )
+
+itk_add_test(NAME itkANTsGroupwiseRegistrationTestFull
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/T_template0Result337.nrrd}
+    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFull.nrrd
+  itkANTsGroupwiseRegistrationTest
+  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
+  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFull.nrrd
+  10
+  SyN
   )
 
 itk_add_test(NAME itkANTsGroupwiseRegistrationTest3D
