@@ -165,6 +165,13 @@ public:
     inputPtr->SetRequestedRegionToLargestPossibleRegion();
   }
 
+  /** Request the largest possible region on all outputs. */
+  void
+  EnlargeOutputRequestedRegion(DataObject * output) override
+  {
+    output->SetRequestedRegionToLargestPossibleRegion();
+  }
+
   void
   GenerateOutputInformation() override;
 

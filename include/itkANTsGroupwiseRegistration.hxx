@@ -252,12 +252,16 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   this->UpdateProgress(0.0);
 
   this->GenerateOutputInformation();
+  TTemplateImage * outputPtr = this->GetOutput();
 
   typename TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
   if (initialTemplate->GetLargestPossibleRegion().GetNumberOfPixels() > 0)
   {
     // copy the initial template into the output (the current average template)
-    this->GraftOutput(this->DuplicateImage(initialTemplate));
+    auto region = initialTemplate->GetLargestPossibleRegion();
+    outputPtr->SetRegions(region);
+    outputPtr->Allocate(false);
+    ImageAlgorithm::Copy(initialTemplate.GetPointer(), outputPtr, region, region);
   }
   else
   {
@@ -282,7 +286,9 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       average = addImageFilter->GetOutput();
     }
 
-    this->GraftOutput(average);
+    outputPtr->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    outputPtr->SetPixelContainer(average->GetPixelContainer());
+    outputPtr->Modified();
   }
   this->UpdateProgress(0.01);
   // WriteImage(this->GetOutput(), "initialTemplate.nrrd"); // debug
@@ -439,10 +445,10 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       xavg = addImageFilter->GetOutput();
     }
 
-    // xavg->DisconnectPipeline(); // does not help
-    // xavg->Modified();  // does not help
     // WriteImage(xavg, "avgTemplate" + std::to_string(i) + ".nrrd"); // debug
-    this->GraftOutput(xavg);
+
+    outputPtr->SetPixelContainer(xavg->GetPixelContainer());
+    outputPtr->Modified();
   }
 
   // this->GetOutput()->Modified();  // does not help

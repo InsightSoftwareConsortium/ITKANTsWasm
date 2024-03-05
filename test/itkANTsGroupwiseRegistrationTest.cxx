@@ -90,7 +90,6 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   filter->Update();
 
   auto templateImage = filter->GetTemplateImage();
-  templateImage->DisconnectPipeline();
   std::cout << "templateImage: " << *templateImage;
   itk::WriteImage(templateImage, outName);
 
