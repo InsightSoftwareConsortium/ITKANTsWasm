@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include "itkANTSRegistration.h"
+#include "itkANTsRegistration.h"
 
 #include "itkImageFileWriter.h"
 #include "itkHDF5TransformIOFactory.h"
@@ -70,7 +70,7 @@ doTest(int argc, char * argv[])
 
   using ImageType = itk::Image<float, Dimension>;
   using LabelImageType = itk::Image<unsigned char, Dimension>;
-  using FilterType = itk::ANTSRegistration<ImageType, ImageType, TPrecision>;
+  using FilterType = itk::ANTsRegistration<ImageType, ImageType, TPrecision>;
   typename FilterType::Pointer filter = FilterType::New();
 
   typename ImageType::Pointer fixedImage;
@@ -248,7 +248,7 @@ doTest(int argc, char * argv[])
 }
 
 int
-itkANTSRegistrationTest(int argc, char * argv[])
+itkANTsRegistrationTest(int argc, char * argv[])
 {
   if (argc < 4)
   {
