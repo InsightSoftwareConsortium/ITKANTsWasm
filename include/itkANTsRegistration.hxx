@@ -257,7 +257,7 @@ ANTsRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(Da
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 template <typename TImage>
 auto
-itk::ANTsRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImageToInternalType(
+ANTsRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImageToInternalType(
   const TImage * inputImage) -> typename InternalImageType::Pointer
 {
   using CastFilterType = CastImageFilter<TImage, InternalImageType>;
