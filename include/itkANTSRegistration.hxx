@@ -346,9 +346,20 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::SingleStageRe
         m_Helper->AddBSplineTransform(m_GradientStep, meshSizeAtBaseLevel);
         affineType = false;
       }
+      break;
+      // BSplineSyN is not available in ANTsPy, but is used in faces example
+      case RegistrationHelperType::BSplineSyN: {
+        unsigned int splineOrder = 3;
+        std::vector<unsigned int> meshSizeForTheUpdateField =
+          m_Helper->CalculateMeshSizeForSpecifiedKnotSpacing(fixedImage, 75, splineOrder); // TODO: expose grid spacing?
+        std::vector<unsigned int> meshSizeForTheTotalField(ImageDimension, 0);
+        m_Helper->AddBSplineSyNTransform(
+          m_GradientStep, meshSizeForTheUpdateField, meshSizeForTheTotalField, splineOrder);
+        affineType = false;
+      }
+      break;
       // These are not available in ANTsPy, so we don't support them either
       case RegistrationHelperType::BSplineDisplacementField:
-      case RegistrationHelperType::BSplineSyN:
       case RegistrationHelperType::TimeVaryingBSplineVelocityField:
       case RegistrationHelperType::Exponential:
       case RegistrationHelperType::BSplineExponential:
