@@ -63,10 +63,11 @@ itk_add_test(NAME itkANTsGroupwiseRegistrationTestBSplineSyN
   BSplineSyN
   )
 
-itk_add_test(NAME itkANTsGroupwiseRegistrationTest3D
-  COMMAND ANTsWasmTestDriver itkANTsGroupwiseRegistrationTest3D
-  C:/a/lola11CT ${ITK_TEST_OUTPUT_DIR}
-  )
+# Debugging, test data only present locally
+# itk_add_test(NAME itkANTsGroupwiseRegistrationTest3D
+#   COMMAND ANTsWasmTestDriver itkANTsGroupwiseRegistrationTest3D
+#   C:/a/lola11CT ${ITK_TEST_OUTPUT_DIR}
+#   )
 
 
 itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
