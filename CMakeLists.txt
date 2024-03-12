@@ -4,7 +4,7 @@ include(FetchContent)
 FetchContent_Declare(
   ants_inner
   GIT_REPOSITORY https://github.com/ANTsX/ANTs
-  GIT_TAG        27482c79c41908bd16747c991971e620d4a9978d  # 2024-02-29
+  GIT_TAG        f7c20a579277d825a0c4eb2624ec3f3a6df7f0bc  # 2024-03-19
 )
 FetchContent_GetProperties(ants_inner)
 if(NOT ants_inner_POPULATED)
