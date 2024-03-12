@@ -18,7 +18,7 @@ itk_add_test(NAME itkANTsRegistrationBasicTests
 itk_add_test(NAME itkANTsGroupwiseRegistrationTestAffine
   COMMAND ANTsWasmTestDriver
     --compare
-    DATA{Baseline/T_template0Result337.nrrd}
+    DATA{Baseline/itkANTsGroupwiseRegistrationTestAffine.png}
     ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestAffine.nrrd
   itkANTsGroupwiseRegistrationTest
   DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time

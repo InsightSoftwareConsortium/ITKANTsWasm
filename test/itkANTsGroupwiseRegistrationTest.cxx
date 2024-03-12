@@ -83,6 +83,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   pairwiseRegistration->SetSynIterations(iterations);
   pairwiseRegistration->SetShrinkFactors({ 16, 12, 8, 4, 2, 1 });
   pairwiseRegistration->SetSmoothingSigmas({ 4, 4, 4, 2, 1, 0 });
+  pairwiseRegistration->SetRandomSeed(19831030); // helps with reproducibility
   filter->SetPairwiseRegistration(pairwiseRegistration);
 
   filter->DebugOn();
