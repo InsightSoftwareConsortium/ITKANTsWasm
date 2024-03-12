@@ -38,7 +38,7 @@ TemplateImageType = itk.Image[itk.F, Dimension]
 
 gwr = itk.ANTsGroupwiseRegistration[ImageType, TemplateImageType, itk.F].New()
 # pairwise registration has different order of template parameters
-pwr = itk.ANTSRegistration[TemplateImageType, ImageType, itk.F].New()
+pwr = itk.ANTsRegistration[TemplateImageType, ImageType, itk.F].New()
 
 if args.initial_template is not None:
     print(f"Reading initial template: {args.initial_template}")

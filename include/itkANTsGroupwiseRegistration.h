@@ -19,7 +19,7 @@
 #define itkANTsGroupwiseRegistration_h
 
 #include "itkImageToImageFilter.h"
-#include "itkANTSRegistration.h"
+#include "itkANTsRegistration.h"
 #include "itkImage.h"
 #include "itkDisplacementFieldTransform.h"
 
@@ -148,7 +148,7 @@ public:
     return m_TransformList[imageIndex];
   }
 
-  using PairwiseType = ANTSRegistration<TemplateImageType, ImageType, ParametersValueType>;
+  using PairwiseType = ANTsRegistration<TemplateImageType, ImageType, ParametersValueType>;
   /** Set/Get step size for shape update gradient. */
   itkSetObjectMacro(PairwiseRegistration, PairwiseType);
   itkGetModifiableObjectMacro(PairwiseRegistration, PairwiseType);

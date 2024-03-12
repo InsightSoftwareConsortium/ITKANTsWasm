@@ -73,7 +73,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   filter->SetIterations(4);
   filter->SetGradientStep(0.15);
 
-  using PairwiseType = itk::ANTSRegistration<FloatImageType, ImageType, float>;
+  using PairwiseType = itk::ANTsRegistration<FloatImageType, ImageType, float>;
   typename PairwiseType::Pointer pairwiseRegistration = PairwiseType::New();
   pairwiseRegistration->SetTypeOfTransform(typeOfTransform);
   pairwiseRegistration->SetSynMetric("CC");
