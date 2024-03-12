@@ -381,19 +381,22 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     typename AffineType::Pointer avgAffine = AffineType::New();
     typename AffineType::Pointer avgAffineInverse = AffineType::New();
 
-    using WarperType = AverageAffineTransformFunction<AffineType>;
-    WarperType average_func;
-    average_func.verbose = false;
-    average_func.useRigid = !m_UseNoRigid;
-    for (unsigned k = 0; k < m_ImageList.size(); ++k)
+    if (std::count(affineList.begin(), affineList.end(), nullptr) == 0) // all affines present
     {
-      average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
-    }
-    average_func.AverageMultipleAffineTransform(affineList[0]->GetCenter(), avgAffine);
+      using WarperType = AverageAffineTransformFunction<AffineType>;
+      WarperType average_func;
+      average_func.verbose = false;
+      average_func.useRigid = !m_UseNoRigid;
+      for (unsigned k = 0; k < m_ImageList.size(); ++k)
+      {
+        average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
+      }
+      average_func.AverageMultipleAffineTransform(affineList[0]->GetCenter(), avgAffine);
 
-    bool inverseExists = avgAffine->GetInverse(avgAffineInverse);
-    assert(inverseExists);
-    // WriteTransform(avgAffineInverse.GetPointer(), "avgAffineInverse" + std::to_string(i) + ".tfm"); // debug
+      bool inverseExists = avgAffine->GetInverse(avgAffineInverse);
+      assert(inverseExists);
+      // WriteTransform(avgAffineInverse.GetPointer(), "avgAffineInverse" + std::to_string(i) + ".tfm"); // debug
+    }
 
     if (wavg != nullptr) // we have displacement fields
     {
