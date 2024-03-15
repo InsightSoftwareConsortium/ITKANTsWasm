@@ -27,26 +27,27 @@ itk_add_test(NAME itkANTsGroupwiseRegistrationTestAffine
   Affine
   )
 
-itk_add_test(NAME itkANTsGroupwiseRegistrationTestSyN
+itk_add_test(NAME itkANTsGroupwiseRegistrationTestSyNFromAffineTemplate
   COMMAND ANTsWasmTestDriver
     --compare
     DATA{Baseline/T_template0Result337.nrrd}
-    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestSyN.nrrd
+    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestSyNFromAffineTemplate.nrrd
   itkANTsGroupwiseRegistrationTest
   DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
-  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestSyN.nrrd
+  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestSyNFromAffineTemplate.nrrd
   10
-  SyNOnly
+  SyN
+  DATA{Baseline/itkANTsGroupwiseRegistrationTestAffine.png}
   )
 
-itk_add_test(NAME itkANTsGroupwiseRegistrationTestAffineSyN
+itk_add_test(NAME itkANTsGroupwiseRegistrationTestDirectSyN
   COMMAND ANTsWasmTestDriver
     --compare
     DATA{Baseline/T_template0Result337.nrrd}
-    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestAffineSyN.nrrd
+    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestDirectSyN.nrrd
   itkANTsGroupwiseRegistrationTest
   DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
-  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestAffineSyN.nrrd
+  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestDirectSyN.nrrd
   10
   SyN
   )

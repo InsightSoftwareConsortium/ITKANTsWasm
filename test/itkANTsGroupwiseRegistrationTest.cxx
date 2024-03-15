@@ -31,7 +31,7 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   {
     std::cerr << "Missing parameters." << std::endl;
     std::cerr << "Usage: " << itkNameOfTestExecutableMacro(argv);
-    std::cerr << " inputDirectory outputTemplateName [numberOfFaces] [typeOfTransform]";
+    std::cerr << " inputDirectory outputTemplateName [numberOfFaces] [typeOfTransform] [initialTemplate]";
     std::cerr << std::endl;
     return EXIT_FAILURE;
   }
@@ -58,6 +58,12 @@ itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
   using FloatImageType = itk::Image<float, 2>;
   using FilterType = itk::ANTsGroupwiseRegistration<ImageType, FloatImageType, float>;
   typename FilterType::Pointer filter = FilterType::New();
+
+  if (argc > 5)
+  {
+    auto initialTemplate = itk::ReadImage<FloatImageType>(argv[5]);
+    filter->SetInitialTemplateImage(initialTemplate);
+  }
   ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTsGroupwiseRegistration, ImageToImageFilter);
 
   itk::SimpleFilterWatcher        watcher(filter, "ANTs groupwise registration");
