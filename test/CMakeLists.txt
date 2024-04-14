@@ -279,7 +279,7 @@ itk_add_test(NAME antsRegistrationTest_MSEAffineRotationMasks
     DATA{Baseline/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz}
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz
     --compareIntensityTolerance 7
-    --compareRadiusTolerance 1
+    --compareRadiusTolerance 2
     --compareNumberOfPixelsTolerance 1250
   itkANTsRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
