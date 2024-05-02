@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "itk-ants"
-version = "0.4rc2"
+version = "0.4rc3"
 description = "Advanced Normalization Tools in WebAssembly"
 readme = "README.rst"
 license = {file = "LICENSE"}
