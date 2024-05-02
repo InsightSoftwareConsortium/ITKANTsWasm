@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef itkANTsRegistration_h
-#define itkANTsRegistration_h
+#ifndef itkANTSRegistration_h
+#define itkANTSRegistration_h
 
 #include "itkProcessObject.h"
 #include "itkImage.h"
@@ -27,7 +27,7 @@
 namespace itk
 {
 
-/** \class ANTsRegistration
+/** \class ANTSRegistration
  *
  * \brief Image-to-image registration method parameterized according to ANTsR or ANTsPy.
  *
@@ -41,10 +41,10 @@ namespace itk
  *
  */
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType = double>
-class ANTsRegistration : public ProcessObject
+class ANTSRegistration : public ProcessObject
 {
 public:
-  ITK_DISALLOW_COPY_AND_MOVE(ANTsRegistration);
+  ITK_DISALLOW_COPY_AND_MOVE(ANTSRegistration);
 
   static constexpr unsigned int ImageDimension = TFixedImage::ImageDimension;
 
@@ -63,13 +63,13 @@ public:
   using DecoratedOutputTransformType = DataObjectDecorator<OutputTransformType>;
 
   /** Standard class aliases. */
-  using Self = ANTsRegistration<FixedImageType, MovingImageType, ParametersValueType>;
+  using Self = ANTSRegistration<FixedImageType, MovingImageType, ParametersValueType>;
   using Superclass = ProcessObject;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Run-time type information. */
-  itkTypeMacro(ANTsRegistration, ProcessObject);
+  itkTypeMacro(ANTSRegistration, ProcessObject);
 
   /** Standard New macro. */
   itkNewMacro(Self);
@@ -277,8 +277,8 @@ public:
 
 
 protected:
-  ANTsRegistration();
-  ~ANTsRegistration() override = default;
+  ANTSRegistration();
+  ~ANTSRegistration() override = default;
 
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
@@ -366,7 +366,7 @@ private:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#  include "itkANTsRegistration.hxx"
+#  include "itkANTSRegistration.hxx"
 #endif
 
-#endif // itkANTsRegistration
+#endif // itkANTSRegistration
