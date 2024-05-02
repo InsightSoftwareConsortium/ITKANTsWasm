@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include "itkANTsRegistration.h"
+#include "itkANTSRegistration.h"
 
 #include "itkCommand.h"
 #include "itkImageFileWriter.h"
@@ -74,9 +74,9 @@ testFilter(std::string outDir, std::string transformType)
 
   using FixedImageType = itk::Image<FixedPixelType, Dimension>;
   using MovingImageType = itk::Image<MovingPixelType, Dimension>;
-  using FilterType = itk::ANTsRegistration<FixedImageType, MovingImageType>;
+  using FilterType = itk::ANTSRegistration<FixedImageType, MovingImageType>;
   typename FilterType::Pointer filter = FilterType::New();
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTsRegistration, ProcessObject);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSRegistration, ProcessObject);
 
   using LabelImageType = itk::Image<unsigned char, Dimension>;
 
@@ -197,7 +197,7 @@ testFilter(std::string outDir, std::string transformType)
 
 
 int
-itkANTsRegistrationBasicTests(int argc, char * argv[])
+itkANTSRegistrationBasicTests(int argc, char * argv[])
 {
   if (argc < 2)
   {
