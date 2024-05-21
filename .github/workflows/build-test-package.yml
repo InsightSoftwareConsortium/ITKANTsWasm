@@ -4,9 +4,9 @@ on: [push,pull_request]
 
 jobs:
   cxx-build-workflow:
-    uses: thewtex/ITKRemoteModuleBuildTestPackageAction/.github/workflows/build-test-cxx.yml@d0ccbd2f089a0c193ad362481135bc150b0cab10
+    uses: thewtex/ITKRemoteModuleBuildTestPackageAction/.github/workflows/build-test-cxx.yml@1f6e25cd9a591707611af5bbb94b7d2fbfa42994
 
   python-build-workflow:
-    uses: thewtex/ITKRemoteModuleBuildTestPackageAction/.github/workflows/build-test-package-python.yml@d0ccbd2f089a0c193ad362481135bc150b0cab10
+    uses: thewtex/ITKRemoteModuleBuildTestPackageAction/.github/workflows/build-test-package-python.yml@1f6e25cd9a591707611af5bbb94b7d2fbfa42994
     secrets:
       pypi_password: ${{ secrets.pypi_password }}
