@@ -23,6 +23,7 @@
 #include "itkCompositeTransform.h"
 #include "itkDataObjectDecorator.h"
 #include "itkantsRegistrationHelper.h"
+#include "itkDisplacementFieldTransformParametersAdaptor.h"
 
 namespace itk
 {
@@ -240,10 +241,16 @@ public:
   /** Set/Get the optimizer weights. When set, this allows restricting the optimization
    * of the displacement field, translation, rigid or affine transform on a per-component basis.
    * For example, to limit the deformation or rotation of 3-D volume to the first two dimensions,
-   * specify a weight vector of ‘(1,1,0)’ for a 3D deformation field
+   * specify a weight vector of ‘(1,1,0)’ for a 3D displacement field
    * or ‘(1,1,0,1,1,0)’ for a rigid transformation. */
   itkSetMacro(RestrictTransformation, std::vector<ParametersValueType>);
   itkGetConstReferenceMacro(RestrictTransformation, std::vector<ParametersValueType>);
+
+  /** Set/Get the subsampling factor for displacement fields results.
+   * A factor of 1 results in no subsampling. This is applied in all dimensions.
+   * The default is 2. */
+  itkSetMacro(DisplacementFieldSubsamplingFactor, unsigned int);
+  itkGetMacro(DisplacementFieldSubsamplingFactor, unsigned int);
 
   virtual DecoratedOutputTransformType *
   GetOutput(DataObjectPointerArraySizeType i);
@@ -286,6 +293,10 @@ protected:
   DataObjectPointer MakeOutput(DataObjectPointerArraySizeType) override;
   using RegistrationHelperType = ::ants::RegistrationHelper<TParametersValueType, FixedImageType::ImageDimension>;
   using InternalImageType = typename RegistrationHelperType::ImageType; // float or double pixels
+  using DisplacementFieldTransformType = typename RegistrationHelperType::DisplacementFieldTransformType;
+  using DisplacementFieldType = typename DisplacementFieldTransformType::DisplacementFieldType;
+  using DisplacementFieldTransformParametersAdaptorType =
+    DisplacementFieldTransformParametersAdaptor<DisplacementFieldTransformType>;
 
   template <typename TImage>
   typename InternalImageType::Pointer
@@ -346,6 +357,7 @@ protected:
   unsigned int        m_Radius{ 4 };
   bool                m_CollapseCompositeTransform{ true };
   bool                m_MaskAllStages{ false };
+  unsigned int        m_DisplacementFieldSubsamplingFactor{ 2 };
 
   std::vector<unsigned int> m_SynIterations{ 40, 20, 0 };
   std::vector<unsigned int> m_AffineIterations{ 2100, 1200, 1200, 10 };
@@ -355,7 +367,10 @@ protected:
   std::vector<ParametersValueType> m_RestrictTransformation;
 
 private:
-  typename RegistrationHelperType::Pointer m_Helper{ RegistrationHelperType::New() };
+  typename RegistrationHelperType::Pointer                          m_Helper{ RegistrationHelperType::New() };
+  typename DisplacementFieldTransformParametersAdaptorType::Pointer m_DisplacementFieldAdaptor{
+    DisplacementFieldTransformParametersAdaptorType::New()
+  };
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   static_assert(TFixedImage::ImageDimension == TMovingImage::ImageDimension,

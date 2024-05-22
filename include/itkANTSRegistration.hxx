@@ -67,6 +67,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::PrintSelf(std
   os << indent << "Radius: " << this->m_Radius << std::endl;
   os << indent << "CollapseCompositeTransform: " << (this->m_CollapseCompositeTransform ? "On" : "Off") << std::endl;
   os << indent << "MaskAllStages: " << (this->m_MaskAllStages ? "On" : "Off") << std::endl;
+  os << indent << "DisplacementFieldSubsamplingFactor: " << this->m_DisplacementFieldSubsamplingFactor << std::endl;
 
   os << indent << "SynIterations: " << this->m_SynIterations << std::endl;
   os << indent << "AffineIterations: " << this->m_AffineIterations << std::endl;
@@ -257,8 +258,8 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::MakeOutput(Da
 template <typename TFixedImage, typename TMovingImage, typename TParametersValueType>
 template <typename TImage>
 auto
-ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImageToInternalType(
-  const TImage * inputImage) -> typename InternalImageType::Pointer
+ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::CastImageToInternalType(const TImage * inputImage) ->
+  typename InternalImageType::Pointer
 {
   using CastFilterType = CastImageFilter<TImage, InternalImageType>;
   typename CastFilterType::Pointer castFilter = CastFilterType::New();
@@ -606,7 +607,7 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
   {
     itkExceptionMacro(<< "Unsupported transform type: " << this->GetTypeOfTransform());
   }
-  this->UpdateProgress(0.95);
+  this->UpdateProgress(0.90);
 
   typename OutputTransformType::Pointer forwardTransform = m_Helper->GetModifiableCompositeTransform();
   if (m_CollapseCompositeTransform)
@@ -614,6 +615,41 @@ ANTSRegistration<TFixedImage, TMovingImage, TParametersValueType>::GenerateData(
     forwardTransform = m_Helper->CollapseCompositeTransform(forwardTransform);
   }
   this->SetForwardTransform(forwardTransform);
+
+  if (m_DisplacementFieldSubsamplingFactor > 1)
+  {
+    using TransformType = typename OutputTransformType::TransformType;
+    for (unsigned int i = 0; i < forwardTransform->GetNumberOfTransforms(); ++i)
+    {
+      typename TransformType::Pointer                  transform = forwardTransform->GetNthTransform(i);
+      typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
+        dynamic_cast<DisplacementFieldTransformType *>(transform.GetPointer());
+      if (displacementFieldTransform)
+      {
+        // The transform is a DisplacementFieldTransform
+        displacementFieldTransform->Print(std::cout, 3);
+        const auto displacementField = displacementFieldTransform->GetDisplacementField();
+        m_DisplacementFieldAdaptor->SetTransform(displacementFieldTransform);
+        m_DisplacementFieldAdaptor->SetRequiredOrigin(displacementField->GetOrigin());
+        m_DisplacementFieldAdaptor->SetRequiredDirection(displacementField->GetDirection());
+        auto requiredSize = displacementField->GetLargestPossibleRegion().GetSize();
+        for (unsigned int i = 0; i < requiredSize.GetSizeDimension(); ++i)
+        {
+          requiredSize[i] /= m_DisplacementFieldSubsamplingFactor;
+        }
+        m_DisplacementFieldAdaptor->SetRequiredSize(requiredSize);
+        auto requiredSpacing = displacementField->GetSpacing();
+        for (unsigned int i = 0; i < requiredSpacing.GetVectorDimension(); ++i)
+        {
+          requiredSpacing[i] *= m_DisplacementFieldSubsamplingFactor;
+        }
+        m_DisplacementFieldAdaptor->SetRequiredSpacing(requiredSpacing);
+        m_DisplacementFieldAdaptor->AdaptTransformParameters();
+        displacementFieldTransform->Print(std::cout, 3);
+      }
+    }
+  }
+  this->UpdateProgress(0.95);
 
   typename OutputTransformType::Pointer inverseTransform = OutputTransformType::New();
   if (forwardTransform->GetInverse(inverseTransform))
