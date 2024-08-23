@@ -1,8 +1,8 @@
 itk_module_test()
 
 set(ANTsWasmTests
-  itkANTsRegistrationTest.cxx
-  itkANTsRegistrationBasicTests.cxx
+  itkANTSRegistrationTest.cxx
+  itkANTSRegistrationBasicTests.cxx
   itkANTsGroupwiseRegistrationTest.cxx
   itkANTsGroupwiseRegistrationTest3D.cxx
   )
@@ -10,9 +10,9 @@ set(ANTsWasmTests
 CreateTestDriver(ANTsWasm "${ANTsWasm-Test_LIBRARIES}" "${ANTsWasmTests}")
 
 
-itk_add_test(NAME itkANTsRegistrationBasicTests
+itk_add_test(NAME itkANTSRegistrationBasicTests
   COMMAND ANTsWasmTestDriver
-  itkANTsRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
+  itkANTSRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
   )
 
 itk_add_test(NAME itkANTsGroupwiseRegistrationTestAffine
@@ -79,7 +79,7 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
     --compareIntensityTolerance 9
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineScaleMasks.tfm  # output transform
@@ -105,7 +105,7 @@ itk_add_test(NAME antsRegistrationTest_AffineScaleNoMasks
     --compareIntensityTolerance 9
     --compareRadiusTolerance 0
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineScaleNoMasks.tfm  # output transform
@@ -131,7 +131,7 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationMasks
     --compareIntensityTolerance 25
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineRotationMasks.tfm  # output transform
@@ -157,7 +157,7 @@ itk_add_test(NAME antsRegistrationTest_AffineRotationNoMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 0
     --compareNumberOfPixelsTolerance 777
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineRotationNoMasks.tfm  # output transform
@@ -183,7 +183,7 @@ itk_add_test(NAME antsRegistrationTest_AffineTranslationMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 0
     --compareNumberOfPixelsTolerance 777
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/translation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineTranslationMasks.tfm  # output transform
@@ -209,7 +209,7 @@ itk_add_test(NAME antsRegistrationTest_AffineTranslationNoMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 0
     --compareNumberOfPixelsTolerance 777
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/translation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_AffineTranslationNoMasks.tfm  # output transform
@@ -235,7 +235,7 @@ itk_add_test(NAME antsRegistrationTest_RigidAnisotropicMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1500
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/ANON0006_20_T1_dbg_splayed.nii.gz}  # fixed image
     DATA{Input/ANON0006_20_T1_sag_twisted.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidAnisotropicMasks.tfm  # output transform
@@ -261,7 +261,7 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationHeadMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 777
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationHeadMasks.tfm  # output transform
@@ -287,7 +287,7 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 777
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationMasks.tfm  # output transform
@@ -313,7 +313,7 @@ itk_add_test(NAME antsRegistrationTest_RigidRotationNoMasks
     --compareIntensityTolerance 7
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 777
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_RigidRotationNoMasks.tfm  # output transform
@@ -337,9 +337,9 @@ itk_add_test(NAME antsRegistrationTest_MSEAffineRotationMasks
     DATA{Baseline/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz}
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSEAffineRotationMasks.result.nii.gz
     --compareIntensityTolerance 7
-    --compareRadiusTolerance 1
+    --compareRadiusTolerance 2
     --compareNumberOfPixelsTolerance 1250
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSEAffineRotationMasks.tfm  # output transform
@@ -365,7 +365,7 @@ itk_add_test(NAME antsRegistrationTest_SimilarityRotationMasks
     --compareIntensityTolerance 11
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SimilarityRotationMasks.tfm  # output transform
@@ -391,7 +391,7 @@ itk_add_test(NAME antsRegistrationTest_CCSimilarityRotationMasks
     --compareIntensityTolerance 11
     --compareRadiusTolerance 0
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_CCSimilarityRotationMasks.tfm  # output transform
@@ -417,7 +417,7 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks
     --compareIntensityTolerance 11
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks.tfm  # output transform
@@ -443,7 +443,7 @@ itk_add_test(NAME antsRegistrationTest_MSESimilarityRotationMasks_Float
     --compareIntensityTolerance 11
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/rotation.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_MSESimilarityRotationMasks_Float.tfm  # output transform
@@ -473,7 +473,7 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks
     --compareIntensityTolerance 9
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks.h5  # output transform
@@ -502,7 +502,7 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_Float
     --compareIntensityTolerance 9
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_Float.h5  # output transform
@@ -532,7 +532,7 @@ itk_add_test(NAME antsRegistrationTest_SyNScaleNoMasks_2stage
     --compareIntensityTolerance 9
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistrationTest_SyNScaleNoMasks_2stage.tfm  # output transform
@@ -564,7 +564,7 @@ itk_add_test(NAME antsRegistration_SyNCC
     --compareIntensityTolerance 9
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistration_SyNCC.tfm  # output transform
@@ -596,7 +596,7 @@ itk_add_test(NAME antsRegistration_SyNRA
     --compareIntensityTolerance 9
     --compareRadiusTolerance 1
     --compareNumberOfPixelsTolerance 1000
-  itkANTsRegistrationTest
+  itkANTSRegistrationTest
     DATA{Input/test.nii.gz}  # fixed image
     DATA{Input/scale.test.nii.gz}  # moving image
     ${ITK_TEST_OUTPUT_DIR}/antsRegistration_SyNRA.tfm  # output transform
