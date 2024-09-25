@@ -25,7 +25,7 @@
 
 
 int
-itkANTsGroupwiseRegistrationTest(int argc, char * argv[])
+itkANTsGroupwiseRegistrationTestFaces(int argc, char * argv[])
 {
   if (argc < 3)
   {

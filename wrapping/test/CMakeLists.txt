@@ -25,13 +25,13 @@ itk_python_expression_add_test(NAME PythonInstantiateANTsGroupwiseRegistrationSh
   EXPRESSION "reg = itk.ANTsGroupwiseRegistration[itk.Image[itk.SS, 3], itk.Image[itk.F, 3], itk.F].New()"
   )
 
-itk_python_add_test(NAME PythonANTsGroupwiseRegistrationTest
+itk_python_add_test(NAME PythonANTsGroupwiseFaces
   TEST_DRIVER_ARGS
   --compare
     DATA{${test_baseline_dir}/T_template0Result337.nrrd}
-    ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseRegistrationTest.nrrd
-  COMMAND PythonANTsGroupwiseRegistrationTest.py
-    -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseRegistrationTest.nrrd
+    ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseFaces.nrrd
+  COMMAND PythonANTsGroupwiseFaces.py
+    -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseFaces.nrrd
     -i DATA{${test_input_dir}/face1.png}
     -i DATA{${test_input_dir}/face2.png}
     -i DATA{${test_input_dir}/face3.png}
