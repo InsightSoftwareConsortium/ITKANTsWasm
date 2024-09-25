@@ -342,7 +342,7 @@ protected:
     return this->GetOutput(1)->Set(inverseTransform);
   }
 
-  std::string m_TypeOfTransform{ "Affine" };
+  std::string m_TypeOfTransform{ "SyN" };
   std::string m_AffineMetric{ "Mattes" };
   std::string m_SynMetric{ "Mattes" };
 
