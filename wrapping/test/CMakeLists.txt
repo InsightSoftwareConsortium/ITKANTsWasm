@@ -43,3 +43,23 @@ itk_python_add_test(NAME PythonANTsGroupwiseFaces
     -i DATA{${test_input_dir}/face9.png}
     -i DATA{${test_input_dir}/face10.png}
   )
+
+itk_python_add_test(NAME PythonANTsGroupwiseBrainSlices
+  TEST_DRIVER_ARGS
+  --compare
+    DATA{${test_baseline_dir}/BrainSlicesTemplate.nrrd}
+    ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
+  COMMAND PythonANTsGroupwiseBrainSlices.py
+    -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
+    -i DATA{${test_input_dir}/OASIS-TRT-20-10Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-11Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-12Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-13Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-14Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-15Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-16Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-17Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-18Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-19Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-20Slice121.nii.gz}
+  )
