@@ -323,7 +323,8 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
       // average transformed images (starts with an all-zero image)
       typename TemplateImageType::Pointer resampledImage =
-        ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[k], xavg, affineList[k]);
+        ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[k], xavg, compositeTransform);
+      // WriteImage(resampledImage, "resampledImage" + std::to_string(i) + "_" + std::to_string(k) + ".nrrd"); // debug
 
       using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
       typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
@@ -437,6 +438,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       sharpenFilter->SetInput(xavg);
       sharpenFilter->Update();
       typename TemplateImageType::Pointer sharpened = sharpenFilter->GetOutput();
+      // WriteImage(sharpened, "sharpened" + std::to_string(i) + ".nrrd"); // debug
 
       using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
       typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
