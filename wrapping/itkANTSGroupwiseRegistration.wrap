@@ -1,4 +1,4 @@
-itk_wrap_class("itk::ANTsGroupwiseRegistration" POINTER)
+itk_wrap_class("itk::ANTSGroupwiseRegistration" POINTER)
   foreach(d ${ITK_WRAP_IMAGE_DIMS})
     foreach(t ${WRAP_ITK_SCALAR})
       string(APPEND ITK_WRAP_PYTHON_SWIG_EXT "DECL_PYTHON_STD_VEC_RAW_TO_SMARTPTR_TYPEMAP(itkImage${ITKM_${t}}${d}, itkImage${ITKM_${t}}${d}_Pointer)\n")

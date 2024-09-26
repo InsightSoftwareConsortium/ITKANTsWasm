@@ -21,8 +21,8 @@ itk_python_add_test(NAME PythonANTSRegistrationTest
     --resampled-moving ${ITK_TEST_OUTPUT_DIR}/PythonANTSRegistrationTest_AffineTranslationNoMasks.result.nii.gz
   )
 
-itk_python_expression_add_test(NAME PythonInstantiateANTsGroupwiseRegistrationShort3Dfloat
-  EXPRESSION "reg = itk.ANTsGroupwiseRegistration[itk.Image[itk.SS, 3], itk.Image[itk.F, 3], itk.F].New()"
+itk_python_expression_add_test(NAME PythonInstantiateANTSGroupwiseRegistrationShort3Dfloat
+  EXPRESSION "reg = itk.ANTSGroupwiseRegistration[itk.Image[itk.SS, 3], itk.Image[itk.F, 3], itk.F].New()"
   )
 
 itk_python_add_test(NAME PythonANTsGroupwiseFaces

@@ -15,13 +15,13 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef itkANTsGroupwiseRegistration_hxx
-#define itkANTsGroupwiseRegistration_hxx
+#ifndef itkANTSGroupwiseRegistration_hxx
+#define itkANTSGroupwiseRegistration_hxx
 
 #include <sstream>
 
 #include "itkPrintHelper.h"
-#include "itkANTsGroupwiseRegistration.h" // needed by Visual Studio for code completion
+#include "itkANTSGroupwiseRegistration.h" // needed by Visual Studio for code completion
 #include "itkImageDuplicator.h"
 #include "itkWeightedAddImageFilter.h"
 #include "itkAverageAffineTransformFunction.h"
@@ -78,7 +78,7 @@ namespace itk
 {
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ANTsGroupwiseRegistration()
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ANTSGroupwiseRegistration()
 {
   this->SetPrimaryInputName("InitialTemplate");
   this->SetPrimaryOutputName("OptimizedImage");
@@ -91,7 +91,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ANTsGro
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSelf(std::ostream & os,
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSelf(std::ostream & os,
                                                                                    Indent         indent) const
 {
   using namespace print_helper;
@@ -126,7 +126,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::VerifyInputInformation() const
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::VerifyInputInformation() const
 {
   if (m_ImageList.empty())
   {
@@ -147,7 +147,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::VerifyI
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 DataObject::Pointer
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOutput(DataObjectPointerArraySizeType)
 {
   typename OutputTransformType::Pointer ptr;
   Self::MakeOutputTransform(ptr);
@@ -159,7 +159,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::MakeOut
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 auto
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::DuplicateImage(const TemplateImageType * image)
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::DuplicateImage(const TemplateImageType * image)
   -> typename TemplateImageType::Pointer
 {
   using DuplicatorType = ImageDuplicator<TemplateImageType>;
@@ -173,7 +173,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Duplica
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 template <typename TOutputImage, typename TInputImage>
 auto
-itk::ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ResampleToTarget(
+itk::ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ResampleToTarget(
   const TInputImage *                  input,
   const TemplateImageType *            target,
   typename TransformType::ConstPointer transform) -> typename TOutputImage::Pointer
@@ -195,7 +195,7 @@ itk::ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Re
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateOutputInformation()
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateOutputInformation()
 {
   if (!m_PairwiseRegistration) // a custom pairwise registration is not set
   {
@@ -247,7 +247,7 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
-ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateData()
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::GenerateData()
 {
   this->UpdateProgress(0.0);
 
@@ -462,4 +462,4 @@ ANTsGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
 } // end namespace itk
 
-#endif // itkANTsGroupwiseRegistration_hxx
+#endif // itkANTSGroupwiseRegistration_hxx
