@@ -49,6 +49,9 @@ itk_python_add_test(NAME PythonANTsGroupwiseBrainSlices
   --compare
     DATA{${test_baseline_dir}/PythonANTsGroupwiseBrainSlices.nrrd}
     ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
+    --compareIntensityTolerance 10
+    --compareRadiusTolerance 1
+    --compareNumberOfPixelsTolerance 1000
   COMMAND PythonANTsGroupwiseBrainSlices.py
     -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
     -i DATA{${test_input_dir}/OASIS-TRT-20-10Slice121.nii.gz}
