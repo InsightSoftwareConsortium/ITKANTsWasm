@@ -52,10 +52,10 @@ for i, input_filename in enumerate(args.input_image):
     images.append(image)
 gwr.SetImageList(images)
 
-gwr.SetIterations(4)
+gwr.SetIterations(6)
 gwr.SetGradientStep(0.15)
 
-pwr.SetTypeOfTransform("SyN")  # example used BSplineSyN, but we have to choose BSpline OR SyN
+pwr.SetTypeOfTransform("BSplineSyN")
 pwr.SetSynMetric("CC")
 pwr.SetSynIterations([100, 100, 100, 70, 50, 10])
 pwr.SetShrinkFactors([16, 12, 8, 4, 2, 1])

@@ -76,7 +76,7 @@ itkANTsGroupwiseRegistrationTestFaces(int argc, char * argv[])
   }
 
   filter->SetImageList(images);
-  filter->SetIterations(4);
+  filter->SetIterations(6);
   filter->SetGradientStep(0.15);
 
   using PairwiseType = itk::ANTSRegistration<FloatImageType, ImageType, float>;
