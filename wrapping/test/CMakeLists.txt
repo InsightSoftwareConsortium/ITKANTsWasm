@@ -47,7 +47,7 @@ itk_python_add_test(NAME PythonANTsGroupwiseFaces
 itk_python_add_test(NAME PythonANTsGroupwiseBrainSlices
   TEST_DRIVER_ARGS
   --compare
-    DATA{${test_baseline_dir}/BrainSlicesTemplate.nrrd}
+    DATA{${test_baseline_dir}/PythonANTsGroupwiseBrainSlices.nrrd}
     ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
   COMMAND PythonANTsGroupwiseBrainSlices.py
     -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
