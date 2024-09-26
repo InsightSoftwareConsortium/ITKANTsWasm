@@ -58,6 +58,7 @@ gwr.SetGradientStep(0.2)
 pwr.SetTypeOfTransform("SyN")
 pwr.SetSynMetric("CC")
 pwr.SetSynIterations([100, 70, 50, 0])
+pwr.SetRandomSeed(30101983)  # improve reproducibility
 
 gwr.SetPairwiseRegistration(pwr)
 print(gwr)
