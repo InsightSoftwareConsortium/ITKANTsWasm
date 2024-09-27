@@ -192,6 +192,32 @@ itk::ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Re
   return result;
 }
 
+template <typename TImage, typename TTemplateImage, typename TParametersValueType>
+template <typename TTempImage>
+typename TTempImage::Pointer
+ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::ScaleAndAdd(
+  typename TTempImage::Pointer   temp,
+  const TTempImage *             image,
+  typename TTempImage::PixelType weight)
+{
+  using MulType = MultiplyImageFilter<TTempImage, TTempImage, TTempImage>;
+  typename MulType::Pointer mul = MulType::New();
+  mul->SetInput1(image);
+  mul->SetConstant2(weight);
+  mul->Update();
+
+  using AddImageFilterType = AddImageFilter<TTempImage, TTempImage, TTempImage>;
+  typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
+  addImageFilter->SetInput1(temp);
+  addImageFilter->SetInput2(mul->GetOutput());
+  addImageFilter->SetInPlace(true);
+  addImageFilter->Update();
+  temp = addImageFilter->GetOutput();
+  temp->DisconnectPipeline();
+
+  return temp;
+}
+
 
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 void
@@ -275,15 +301,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     {
       typename TemplateImageType::Pointer resampledImage =
         ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[i], average, nullptr);
-
-      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
-      typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
-      addImageFilter->SetInPlace(true);
-      addImageFilter->SetInput1(average);
-      addImageFilter->SetInput2(resampledImage);
-      addImageFilter->SetAlpha(1.0 - m_Weights[i]);
-      addImageFilter->Update();
-      average = addImageFilter->GetOutput();
+      average = ScaleAndAdd<TemplateImageType>(average, resampledImage, m_Weights[i]);
     }
 
     outputPtr->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
@@ -325,15 +343,8 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       typename TemplateImageType::Pointer resampledImage =
         ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[k], xavg, compositeTransform);
       // WriteImage(resampledImage, "resampledImage" + std::to_string(i) + "_" + std::to_string(k) + ".nrrd"); // debug
-
-      using AddImageFilterType = WeightedAddImageFilter<TemplateImageType, TemplateImageType, TemplateImageType>;
-      typename AddImageFilterType::Pointer addImageFilter = AddImageFilterType::New();
-      addImageFilter->SetInPlace(true);
-      addImageFilter->SetInput1(xavgNew);
-      addImageFilter->SetInput2(resampledImage);
-      addImageFilter->SetAlpha(1.0 - m_Weights[k]);
-      addImageFilter->Update();
-      xavgNew = addImageFilter->GetOutput();
+      xavgNew = ScaleAndAdd<TemplateImageType>(xavgNew, resampledImage, m_Weights[k]);
+      // WriteImage(xavgNew, "xavgNew" + std::to_string(i) + "_" + std::to_string(k) + ".nrrd"); // debug
 
       if (k == 0 && dfTransform != nullptr) // transforms have a deformation field component
       {
@@ -348,26 +359,9 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       {
         // average the deformation fields
         assert(wavg->IsSameImageGeometryAs(dfTransform->GetDisplacementField()));
-
-        auto weightedVectorAdd = [this, k](const typename DisplacementImageType::PixelType & a,
-                                           const typename DisplacementImageType::PixelType & b) {
-          typename DisplacementImageType::PixelType result{ a };
-          for (unsigned j = 0; j < DisplacementImageType::PixelType::Dimension; ++j)
-          {
-            result[j] = (1.0 - this->m_Weights[k]) * a[j] + this->m_Weights[k] * b[j];
-          }
-          return result;
-        };
-
-        using VectorAddImageFilterType =
-          BinaryGeneratorImageFilter<DisplacementImageType, DisplacementImageType, DisplacementImageType>;
-        typename VectorAddImageFilterType::Pointer vectorAddImageFilter = VectorAddImageFilterType::New();
-        vectorAddImageFilter->SetInPlace(true);
-        vectorAddImageFilter->SetFunctor(weightedVectorAdd);
-        vectorAddImageFilter->SetInput1(wavg);
-        vectorAddImageFilter->SetInput2(dfTransform->GetDisplacementField());
-        vectorAddImageFilter->Update();
-        wavg = vectorAddImageFilter->GetOutput();
+        typename DisplacementImageType::PixelType weight;
+        weight.Fill(m_Weights[k]);
+        wavg = ScaleAndAdd(wavg, dfTransform->GetDisplacementField(), weight);
       }
 
       if (m_KeepTransforms || (compositeTransform->GetNumberOfTransforms() == 1 && affineList[k] != nullptr))

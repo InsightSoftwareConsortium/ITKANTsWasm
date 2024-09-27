@@ -209,6 +209,10 @@ protected:
                    const TemplateImageType *            target,
                    typename TransformType::ConstPointer transform);
 
+  template <typename TTempImage>
+  typename TTempImage::Pointer
+  ScaleAndAdd(typename TTempImage::Pointer temp, const TTempImage * image, typename TTempImage::PixelType weight);
+
   ParametersValueType m_GradientStep{ 0.2 };
   ParametersValueType m_BlendingWeight{ 0.75 };
   bool                m_UseNoRigid{ true };
