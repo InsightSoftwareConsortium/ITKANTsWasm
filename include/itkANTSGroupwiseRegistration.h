@@ -42,7 +42,7 @@ namespace itk
  *
  */
 template <typename TImage,
-          typename TTemplateImage = ::itk::Image<float, TImage::ImageDimension>,
+          typename TTemplateImage = Image<float, TImage::ImageDimension>,
           typename TParametersValueType = double>
 class ANTSGroupwiseRegistration : public ImageToImageFilter<TTemplateImage, TTemplateImage>
 {

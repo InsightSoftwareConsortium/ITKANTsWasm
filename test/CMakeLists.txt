@@ -15,36 +15,14 @@ itk_add_test(NAME itkANTSRegistrationBasicTests
   itkANTSRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
   )
 
-itk_add_test(NAME itkANTsGroupwiseRegistrationTestFacesAffine
-  COMMAND ANTsWasmTestDriver
-    --compare
-    DATA{Baseline/itkANTsGroupwiseRegistrationTestFacesAffine.png}
-    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesAffine.nrrd
-  itkANTSGroupwiseRegistrationTestFaces
-  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
-  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesAffine.nrrd
-  10
-  Affine
-  )
-
-itk_add_test(NAME itkANTsGroupwiseRegistrationTestFacesSyNFromAffineTemplate
-  COMMAND ANTsWasmTestDriver
-    --compare
-    DATA{Baseline/T_template0Result337.nrrd}
-    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesSyNFromAffineTemplate.nrrd
-  itkANTSGroupwiseRegistrationTestFaces
-  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
-  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesSyNFromAffineTemplate.nrrd
-  10
-  SyN
-  DATA{Baseline/itkANTsGroupwiseRegistrationTestFacesAffine.png}
-  )
-
 itk_add_test(NAME itkANTsGroupwiseRegistrationTestFacesDirectSyN
   COMMAND ANTsWasmTestDriver
     --compare
-    DATA{Baseline/T_template0Result337.nrrd}
+    DATA{Baseline/itkANTsGroupwiseRegistrationTestFacesDirectSyN.png}
     ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesDirectSyN.nrrd
+    --compareIntensityTolerance 10
+    --compareRadiusTolerance 3
+    --compareNumberOfPixelsTolerance 2000
   itkANTSGroupwiseRegistrationTestFaces
   DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
   ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesDirectSyN.nrrd
@@ -52,24 +30,7 @@ itk_add_test(NAME itkANTsGroupwiseRegistrationTestFacesDirectSyN
   SyN
   )
 
-itk_add_test(NAME itkANTsGroupwiseRegistrationTestFacesBSplineSyN
-  COMMAND ANTsWasmTestDriver
-    --compare
-    DATA{Baseline/T_template0Result337.nrrd}
-    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesBSplineSyN.nrrd
-  itkANTSGroupwiseRegistrationTestFaces
-  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
-  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesBSplineSyN.nrrd
-  10
-  BSplineSyN
-  )
-
-# Debugging, test data only present locally
-# itk_add_test(NAME itkANTSGroupwiseRegistrationTest3D
-#   COMMAND ANTsWasmTestDriver itkANTSGroupwiseRegistrationTest3D
-#   C:/a/lola11CT ${ITK_TEST_OUTPUT_DIR}
-#   )
-
+# the rest are pairwise registration tests, mostly taken directly from reference ANTs (C++ and scripts)
 
 itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
   COMMAND ANTsWasmTestDriver

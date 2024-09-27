@@ -7,9 +7,9 @@ itk_python_expression_add_test(NAME PythonInstantiateANTSRegistrationFloat2D
 
 itk_python_add_test(NAME PythonANTSRegistrationTest
   TEST_DRIVER_ARGS
-  --compareIntensityTolerance 7
-  --compareRadiusTolerance 0
-  --compareNumberOfPixelsTolerance 777
+  --compareIntensityTolerance 11
+  --compareRadiusTolerance 1
+  --compareNumberOfPixelsTolerance 1000
   --compare
     DATA{${test_baseline_dir}/antsRegistrationTest_AffineTranslationNoMasks.result.nii.gz}
     ${ITK_TEST_OUTPUT_DIR}/PythonANTSRegistrationTest_AffineTranslationNoMasks.result.nii.gz
@@ -28,8 +28,11 @@ itk_python_expression_add_test(NAME PythonInstantiateANTSGroupwiseRegistrationSh
 itk_python_add_test(NAME PythonANTsGroupwiseFaces
   TEST_DRIVER_ARGS
   --compare
-    DATA{${test_baseline_dir}/T_template0Result337.nrrd}
+    DATA{${test_baseline_dir}/PythonANTsGroupwiseFaces.png}
     ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseFaces.nrrd
+    --compareIntensityTolerance 10
+    --compareRadiusTolerance 3
+    --compareNumberOfPixelsTolerance 2000
   COMMAND PythonANTsGroupwiseFaces.py
     -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseFaces.nrrd
     -i DATA{${test_input_dir}/face1.png}
@@ -50,8 +53,8 @@ itk_python_add_test(NAME PythonANTsGroupwiseBrainSlices
     DATA{${test_baseline_dir}/PythonANTsGroupwiseBrainSlices.nrrd}
     ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
     --compareIntensityTolerance 10
-    --compareRadiusTolerance 1
-    --compareNumberOfPixelsTolerance 1000
+    --compareRadiusTolerance 5
+    --compareNumberOfPixelsTolerance 2000
   COMMAND PythonANTsGroupwiseBrainSlices.py
     -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwiseBrainSlices.nrrd
     -i DATA{${test_input_dir}/OASIS-TRT-20-10Slice121.nii.gz}

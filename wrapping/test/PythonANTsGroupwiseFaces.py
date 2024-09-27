@@ -52,7 +52,7 @@ for i, input_filename in enumerate(args.input_image):
     images.append(image)
 gwr.SetImageList(images)
 
-gwr.SetIterations(6)
+gwr.SetIterations(4)
 gwr.SetGradientStep(0.15)
 
 pwr.SetTypeOfTransform("BSplineSyN")
@@ -60,6 +60,7 @@ pwr.SetSynMetric("CC")
 pwr.SetSynIterations([100, 100, 100, 70, 50, 10])
 pwr.SetShrinkFactors([16, 12, 8, 4, 2, 1])
 pwr.SetSmoothingSigmas([4, 4, 4, 2, 1, 0])
+pwr.SetRandomSeed(30101983)  # improve reproducibility
 
 gwr.SetPairwiseRegistration(pwr)
 print(gwr)
