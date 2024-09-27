@@ -102,6 +102,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::PrintSe
   os << indent << "UseNoRigid: " << (this->m_UseNoRigid ? "On" : "Off") << '\n';
   os << indent << "Iterations: " << this->m_Iterations << '\n';
   os << indent << "Weights: " << this->m_Weights << '\n';
+  os << indent << "PathList: " << this->m_PathList << '\n';
 
   os << indent << "ImageList: " << '\n';
   unsigned i = 0;
@@ -128,17 +129,24 @@ template <typename TImage, typename TTemplateImage, typename TParametersValueTyp
 void
 ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::VerifyInputInformation() const
 {
-  if (m_ImageList.empty())
+  if (m_ImageList.empty() && m_PathList.empty())
   {
-    itkExceptionMacro("No input images provided.");
+    itkExceptionMacro("Neither input images nor filename paths are provided.");
   }
 
-  if (m_Weights.size() > 0 && m_Weights.size() != m_ImageList.size())
+  if (m_ImageList.empty() == m_PathList.empty())
+  {
+    itkExceptionMacro("Either input images OR filename paths must be provided, but not both.");
+  }
+
+  std::size_t imageListSize = std::max(m_ImageList.size(), m_PathList.size());
+
+  if (m_Weights.size() > 0 && m_Weights.size() != imageListSize)
   {
     itkExceptionMacro("The number of weights is different from the number of images.");
   }
 
-  if (m_ImageList.size() < 2)
+  if (imageListSize < 2)
   {
     itkExceptionMacro("At least two input images are required.");
   }
@@ -192,6 +200,7 @@ itk::ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Re
   return result;
 }
 
+
 template <typename TImage, typename TTemplateImage, typename TParametersValueType>
 template <typename TTempImage>
 typename TTempImage::Pointer
@@ -230,13 +239,14 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     // m_PairwiseRegistration->DebugOn();
   }
 
+  std::size_t imageListSize = std::max(m_ImageList.size(), m_PathList.size());
   if (m_Weights.empty())
   {
-    m_Weights.resize(m_ImageList.size(), 1.0 / m_ImageList.size());
+    m_Weights.resize(imageListSize, 1.0 / imageListSize);
   }
   else // normalize to sum to 1
   {
-    m_Weights.resize(m_ImageList.size(), 1.0);
+    m_Weights.resize(imageListSize, 1.0);
     TParametersValueType sum = 0;
     for (const auto & weight : m_Weights)
     {
@@ -247,7 +257,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       weight /= sum;
     }
   }
-  m_TransformList.resize(m_ImageList.size(), nullptr);
+  m_TransformList.resize(imageListSize, nullptr);
 
   typename TemplateImageType::Pointer initialTemplate = dynamic_cast<TemplateImageType *>(this->GetInput(0));
   if (!initialTemplate)
@@ -265,8 +275,24 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   else
   {
     // get the output metadata from the first image
-    outputPtr->CopyInformation(m_ImageList[0]);
-    outputPtr->SetLargestPossibleRegion(m_ImageList[0]->GetLargestPossibleRegion());
+    if (m_PathList.empty())
+    {
+      outputPtr->CopyInformation(m_ImageList[0]);
+      outputPtr->SetLargestPossibleRegion(m_ImageList[0]->GetLargestPossibleRegion());
+    }
+    else
+    {
+      if (m_KeepTransforms)
+      {
+        itkExceptionMacro("KeepTransforms defeats the memory-saving purpose of reading images from files.");
+      }
+      using ReaderType = ImageFileReader<TImage>;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName(m_PathList[0]);
+      reader->UpdateOutputInformation();
+      outputPtr->CopyInformation(reader->GetOutput());
+      outputPtr->SetLargestPossibleRegion(reader->GetOutput()->GetLargestPossibleRegion());
+    }
   }
 }
 
@@ -277,6 +303,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 {
   this->UpdateProgress(0.0);
 
+  std::size_t imageListSize = std::max(m_ImageList.size(), m_PathList.size());
   this->GenerateOutputInformation();
   TTemplateImage * outputPtr = this->GetOutput();
 
@@ -293,25 +320,34 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
   {
     // create a simple average of all the input images
     typename TemplateImageType::Pointer average = TemplateImageType::New();
-    average->CopyInformation(m_ImageList[0]);
-    average->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    average->CopyInformation(outputPtr); // GenerateOutputInformation() has already set the output metadata
+    average->SetRegions(outputPtr->GetLargestPossibleRegion());
     average->Allocate(true); // initialize to zero
 
-    for (unsigned i = 0; i < m_ImageList.size(); ++i)
+    for (unsigned i = 0; i < imageListSize; ++i)
     {
+      typename ImageType::Pointer image;
+      if (m_PathList.empty())
+      {
+        image = m_ImageList[i];
+      }
+      else
+      {
+        image = ReadImage<TImage>(m_PathList[i]);
+      }
       typename TemplateImageType::Pointer resampledImage =
-        ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[i], average, nullptr);
+        ResampleToTarget<TemplateImageType, ImageType>(image, average, nullptr);
       average = ScaleAndAdd<TemplateImageType>(average, resampledImage, m_Weights[i]);
-    }
+    } // both image and resampledImage should go out of scope here
 
-    outputPtr->SetRegions(m_ImageList[0]->GetLargestPossibleRegion());
+    outputPtr->SetRegions(average->GetLargestPossibleRegion());
     outputPtr->SetPixelContainer(average->GetPixelContainer());
     outputPtr->Modified();
   }
   this->UpdateProgress(0.01);
   // WriteImage(this->GetOutput(), "initialTemplate.nrrd"); // debug
 
-  float progressStep = 0.98 / (m_Iterations * m_ImageList.size());
+  float progressStep = 0.98 / (m_Iterations * imageListSize);
 
   for (unsigned i = 0; i < m_Iterations; ++i)
   {
@@ -327,11 +363,21 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
     xavgNew->Allocate(true); // initialize to zero
     typename DisplacementImageType::Pointer wavg{ nullptr };
 
-    std::vector<typename AffineType::ConstPointer> affineList(m_ImageList.size(), nullptr);
-    for (unsigned k = 0; k < m_ImageList.size(); ++k)
+    std::vector<typename AffineType::ConstPointer> affineList(imageListSize, nullptr);
+    for (unsigned k = 0; k < imageListSize; ++k)
     {
+      typename ImageType::Pointer image;
+      if (m_PathList.empty())
+      {
+        image = m_ImageList[k];
+      }
+      else
+      {
+        image = ReadImage<TImage>(m_PathList[k]);
+      }
+
       m_PairwiseRegistration->SetFixedImage(xavg);
-      m_PairwiseRegistration->SetMovingImage(m_ImageList[k]);
+      m_PairwiseRegistration->SetMovingImage(image);
       m_PairwiseRegistration->Update();
 
       const CompositeTransformType * compositeTransform = m_PairwiseRegistration->GetForwardTransform();
@@ -341,7 +387,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
 
       // average transformed images (starts with an all-zero image)
       typename TemplateImageType::Pointer resampledImage =
-        ResampleToTarget<TemplateImageType, ImageType>(m_ImageList[k], xavg, compositeTransform);
+        ResampleToTarget<TemplateImageType, ImageType>(image, xavg, compositeTransform);
       // WriteImage(resampledImage, "resampledImage" + std::to_string(i) + "_" + std::to_string(k) + ".nrrd"); // debug
       xavgNew = ScaleAndAdd<TemplateImageType>(xavgNew, resampledImage, m_Weights[k]);
       // WriteImage(xavgNew, "xavgNew" + std::to_string(i) + "_" + std::to_string(k) + ".nrrd"); // debug
@@ -369,7 +415,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
         // if the composite transform is just an affine, keep it regardless of the setting
         m_TransformList[k] = const_cast<CompositeTransformType *>(compositeTransform);
       }
-      this->UpdateProgress(0.01f + progressStep * (i * m_ImageList.size() + (k + 1)));
+      this->UpdateProgress(0.01f + progressStep * (i * imageListSize + (k + 1)));
     } // for k in m_ImageList
     // WriteImage(xavgNew, "xavgNew" + std::to_string(i) + ".nrrd"); // debug
 
@@ -382,7 +428,7 @@ ANTSGroupwiseRegistration<TImage, TTemplateImage, TParametersValueType>::Generat
       WarperType average_func;
       average_func.verbose = false;
       average_func.useRigid = !m_UseNoRigid;
-      for (unsigned k = 0; k < m_ImageList.size(); ++k)
+      for (unsigned k = 0; k < imageListSize; ++k)
       {
         average_func.PushBackAffineTransform(affineList[k], m_Weights[k]);
       }

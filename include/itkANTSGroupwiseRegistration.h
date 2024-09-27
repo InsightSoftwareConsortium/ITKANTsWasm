@@ -31,8 +31,12 @@ namespace itk
  * \brief Group-wise image registration method parameterized according to ANTsPy.
  *
  * Inputs are images to be registered, and optionally initial template.
- * Outputs are the computed template image, and forward and inverse transforms
+ * Outputs are the computed template image, and optionally forward and inverse transforms
  * for each of the input images when registered to the template.
+ *
+ * If images are large, a way to conserve memory is to provide a list of file paths
+ * instead of images already loaded into memory. If this is done, the images will be
+ * loaded into memory one at a time as they are being iterated on, and then unloaded.
  *
  * This is similar to ANTsPy build_template function:
  * https://github.com/ANTsX/ANTsPy/blob/master/ants/registration/build_template.py
@@ -114,7 +118,7 @@ public:
   /** Set/Get whether we should keep registration transforms in memory.
    * If true, transforms which register each of the input images to the template
    * will be available via GetTransform(index) after the registration finishes.
-   * Off by default, to conserve memory. */
+   * Off by default, to conserve memory. Incompatible with providing a PathList. */
   itkSetMacro(KeepTransforms, bool);
   itkGetMacro(KeepTransforms, bool);
   itkBooleanMacro(KeepTransforms);
@@ -125,6 +129,10 @@ public:
 
   /** Set the images to register. */
   itkSetMacro(ImageList, std::vector<typename ImageType::Pointer>);
+
+  /** Set the file paths of images to register. */
+  itkSetMacro(PathList, std::vector<std::string>);
+  itkGetConstReferenceMacro(PathList, std::vector<std::string>);
 
   /** Add an image to the list of images to register. */
   virtual void
@@ -149,7 +157,7 @@ public:
   }
 
   using PairwiseType = ANTSRegistration<TemplateImageType, ImageType, ParametersValueType>;
-  /** Set/Get step size for shape update gradient. */
+  /** Set/Get the internal pairwise registration object (allows its customization). */
   itkSetObjectMacro(PairwiseRegistration, PairwiseType);
   itkGetModifiableObjectMacro(PairwiseRegistration, PairwiseType);
 
@@ -220,6 +228,7 @@ protected:
   bool                m_KeepTransforms{ false };
 
   std::vector<ParametersValueType>         m_Weights;
+  std::vector<std::string>                 m_PathList;
   std::vector<typename ImageType::Pointer> m_ImageList;
   typename PairwiseType::Pointer           m_PairwiseRegistration{ nullptr };
 
