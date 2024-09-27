@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.16.3)
 
+if(POLICY CMP0169)
+    cmake_policy(SET CMP0169 OLD)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
   ants_inner
   GIT_REPOSITORY https://github.com/ANTsX/ANTs
-  GIT_TAG        f7c20a579277d825a0c4eb2624ec3f3a6df7f0bc  # 2024-03-19
+  GIT_TAG        0e0e488fe17aa96dc25a8e88d2db42e5bdfefce7  # 2024-09-27
 )
 FetchContent_GetProperties(ants_inner)
 if(NOT ants_inner_POPULATED)
