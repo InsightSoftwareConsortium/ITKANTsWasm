@@ -69,3 +69,26 @@ itk_python_add_test(NAME PythonANTsGroupwiseBrainSlices
     -i DATA{${test_input_dir}/OASIS-TRT-20-19Slice121.nii.gz}
     -i DATA{${test_input_dir}/OASIS-TRT-20-20Slice121.nii.gz}
   )
+
+itk_python_add_test(NAME PythonANTsGroupwisePaths
+  TEST_DRIVER_ARGS
+  --compare
+    DATA{${test_baseline_dir}/PythonANTsGroupwiseBrainSlices.nrrd}
+    ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwisePaths.nrrd
+    --compareIntensityTolerance 10
+    --compareRadiusTolerance 5
+    --compareNumberOfPixelsTolerance 2000
+  COMMAND PythonANTsGroupwisePaths.py
+    -o ${ITK_TEST_OUTPUT_DIR}/PythonANTsGroupwisePaths.nrrd
+    -i DATA{${test_input_dir}/OASIS-TRT-20-10Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-11Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-12Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-13Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-14Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-15Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-16Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-17Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-18Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-19Slice121.nii.gz}
+    -i DATA{${test_input_dir}/OASIS-TRT-20-20Slice121.nii.gz}
+  )
