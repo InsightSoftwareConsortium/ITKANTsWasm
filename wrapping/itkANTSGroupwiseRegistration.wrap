@@ -1,5 +1,14 @@
+# Groupwise registration only works for 2D and 3D images due to AverageAffineTransformFunction
+set(Dimensions "")
+if ("2" IN_LIST ITK_WRAP_IMAGE_DIMS)
+  list(APPEND Dimensions "2")
+endif()
+if ("3" IN_LIST ITK_WRAP_IMAGE_DIMS)
+  list(APPEND Dimensions "3")
+endif()
+
 itk_wrap_class("itk::ANTSGroupwiseRegistration" POINTER)
-  foreach(d ${ITK_WRAP_IMAGE_DIMS})
+  foreach(d ${Dimensions})
     foreach(t ${WRAP_ITK_SCALAR})
       string(APPEND ITK_WRAP_PYTHON_SWIG_EXT "DECL_PYTHON_STD_VEC_RAW_TO_SMARTPTR_TYPEMAP(itkImage${ITKM_${t}}${d}, itkImage${ITKM_${t}}${d}_Pointer)\n")
       itk_wrap_template("F${ITKM_I${ITKM_${t}}${d}}" "${ITKT_I${ITKM_${t}}${d}}, ${ITKT_I${ITKM_F}${d}}, float")
