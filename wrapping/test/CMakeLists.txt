@@ -22,7 +22,7 @@ itk_python_add_test(NAME PythonANTSRegistrationTest
   )
 
 itk_python_expression_add_test(NAME PythonInstantiateANTSGroupwiseRegistrationShort3Dfloat
-  EXPRESSION "reg = itk.ANTSGroupwiseRegistration[itk.Image[itk.SS, 3], itk.Image[itk.F, 3], itk.F].New()"
+  EXPRESSION "reg = itk.ANTSGroupwiseBuildTemplate[itk.Image[itk.SS, 3], itk.Image[itk.F, 3], itk.F].New()"
   )
 
 itk_python_add_test(NAME PythonANTsGroupwiseFaces

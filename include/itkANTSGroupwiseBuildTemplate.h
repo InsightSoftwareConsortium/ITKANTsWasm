@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef itkANTSGroupwiseRegistration_h
-#define itkANTSGroupwiseRegistration_h
+#ifndef itkANTSGroupwiseBuildTemplate_h
+#define itkANTSGroupwiseBuildTemplate_h
 
 #include "itkImageToImageFilter.h"
 #include "itkANTSRegistration.h"
@@ -26,7 +26,7 @@
 namespace itk
 {
 
-/** \class ANTSGroupwiseRegistration
+/** \class ANTSGroupwiseBuildTemplate
  *
  * \brief Group-wise image registration method parameterized according to ANTsPy.
  *
@@ -48,10 +48,10 @@ namespace itk
 template <typename TImage,
           typename TTemplateImage = Image<float, TImage::ImageDimension>,
           typename TParametersValueType = double>
-class ANTSGroupwiseRegistration : public ImageToImageFilter<TTemplateImage, TTemplateImage>
+class ANTSGroupwiseBuildTemplate : public ImageToImageFilter<TTemplateImage, TTemplateImage>
 {
 public:
-  ITK_DISALLOW_COPY_AND_MOVE(ANTSGroupwiseRegistration);
+  ITK_DISALLOW_COPY_AND_MOVE(ANTSGroupwiseBuildTemplate);
 
   static constexpr unsigned int ImageDimension = TImage::ImageDimension;
 
@@ -66,13 +66,13 @@ public:
   using DecoratedOutputTransformType = DataObjectDecorator<OutputTransformType>;
 
   /** Standard class aliases. */
-  using Self = ANTSGroupwiseRegistration<ImageType, TTemplateImage, ParametersValueType>;
+  using Self = ANTSGroupwiseBuildTemplate<ImageType, TTemplateImage, ParametersValueType>;
   using Superclass = ImageToImageFilter<TTemplateImage, TTemplateImage>;
   using Pointer = SmartPointer<Self>;
   using ConstPointer = SmartPointer<const Self>;
 
   /** Run-time type information. */
-  itkTypeMacro(ANTSGroupwiseRegistration, ImageToImageFilter);
+  itkTypeMacro(ANTSGroupwiseBuildTemplate, ImageToImageFilter);
 
   /** Standard New macro. */
   itkNewMacro(Self);
@@ -184,8 +184,8 @@ public:
   GenerateOutputInformation() override;
 
 protected:
-  ANTSGroupwiseRegistration();
-  ~ANTSGroupwiseRegistration() override = default;
+  ANTSGroupwiseBuildTemplate();
+  ~ANTSGroupwiseBuildTemplate() override = default;
 
   /** Make a DataObject of the correct type to be used as the specified output. */
   using DataObjectPointerArraySizeType = ProcessObject::DataObjectPointerArraySizeType;
@@ -243,7 +243,7 @@ protected:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#  include "itkANTSGroupwiseRegistration.hxx"
+#  include "itkANTSGroupwiseBuildTemplate.hxx"
 #endif
 
-#endif // itkANTSGroupwiseRegistration
+#endif // itkANTSGroupwiseBuildTemplate

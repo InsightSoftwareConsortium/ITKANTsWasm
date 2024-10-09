@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include "itkANTSGroupwiseRegistration.h"
+#include "itkANTSGroupwiseBuildTemplate.h"
 
 #include "itkImageFileWriter.h"
 #include "itkSimpleFilterWatcher.h"
@@ -56,7 +56,7 @@ itkANTSGroupwiseRegistrationTestFaces(int argc, char * argv[])
 
   using ImageType = itk::Image<unsigned char, 2>;
   using FloatImageType = itk::Image<float, 2>;
-  using FilterType = itk::ANTSGroupwiseRegistration<ImageType, FloatImageType, float>;
+  using FilterType = itk::ANTSGroupwiseBuildTemplate<ImageType, FloatImageType, float>;
   typename FilterType::Pointer filter = FilterType::New();
 
   if (argc > 5)
@@ -64,7 +64,7 @@ itkANTSGroupwiseRegistrationTestFaces(int argc, char * argv[])
     auto initialTemplate = itk::ReadImage<FloatImageType>(argv[5]);
     filter->SetInitialTemplateImage(initialTemplate);
   }
-  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSGroupwiseRegistration, ImageToImageFilter);
+  ITK_EXERCISE_BASIC_OBJECT_METHODS(filter, ANTSGroupwiseBuildTemplate, ImageToImageFilter);
 
   itk::SimpleFilterWatcher        watcher(filter, "ANTs groupwise registration");
   std::vector<ImageType::Pointer> images;

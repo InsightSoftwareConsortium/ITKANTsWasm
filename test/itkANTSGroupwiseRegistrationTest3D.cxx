@@ -16,7 +16,7 @@
  *
  *=========================================================================*/
 
-#include "itkANTSGroupwiseRegistration.h"
+#include "itkANTSGroupwiseBuildTemplate.h"
 
 #include "itkImageFileWriter.h"
 #include "itkTxtTransformIOFactory.h"
@@ -44,7 +44,7 @@ itkANTSGroupwiseRegistrationTest3D(int argc, char * argv[])
 
   using ImageType = itk::Image<signed short, 3>;
   using FloatImageType = itk::Image<float, 3>;
-  using FilterType = itk::ANTSGroupwiseRegistration<ImageType, ImageType, float>;
+  using FilterType = itk::ANTSGroupwiseBuildTemplate<ImageType, ImageType, float>;
   typename FilterType::Pointer filter = FilterType::New();
 
   std::vector<ImageType::Pointer> images;
