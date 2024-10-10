@@ -3,6 +3,8 @@ itk_module_test()
 set(ANTsWasmTests
   itkANTSRegistrationTest.cxx
   itkANTSRegistrationBasicTests.cxx
+  itkANTSGroupwiseRegistrationTestFaces.cxx
+  itkANTSGroupwiseRegistrationTest3D.cxx
   )
 
 CreateTestDriver(ANTsWasm "${ANTsWasm-Test_LIBRARIES}" "${ANTsWasmTests}")
@@ -12,6 +14,23 @@ itk_add_test(NAME itkANTSRegistrationBasicTests
   COMMAND ANTsWasmTestDriver
   itkANTSRegistrationBasicTests ${ITK_TEST_OUTPUT_DIR}
   )
+
+itk_add_test(NAME itkANTsGroupwiseRegistrationTestFacesDirectSyN
+  COMMAND ANTsWasmTestDriver
+    --compare
+    DATA{Baseline/itkANTsGroupwiseRegistrationTestFacesDirectSyN.png}
+    ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesDirectSyN.nrrd
+    --compareIntensityTolerance 10
+    --compareRadiusTolerance 3
+    --compareNumberOfPixelsTolerance 2000
+  itkANTSGroupwiseRegistrationTestFaces
+  DATA{${CMAKE_CURRENT_LIST_DIR}/Input/face10.png,REGEX:face[0-9]+\\.png}  # download data at build time
+  ${ITK_TEST_OUTPUT_DIR}/itkANTsGroupwiseRegistrationTestFacesDirectSyN.nrrd
+  10
+  SyN
+  )
+
+# the rest are pairwise registration tests, mostly taken directly from reference ANTs (C++ and scripts)
 
 itk_add_test(NAME antsRegistrationTest_AffineScaleMasks
   COMMAND ANTsWasmTestDriver
