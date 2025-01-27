@@ -9,6 +9,6 @@ jobs:
   python-build-workflow:
     uses: InsightSoftwareConsortium/ITKRemoteModuleBuildTestPackageAction/.github/workflows/build-test-package-python.yml@v5.4.0
     with:
-      manylinux-platforms: '["_2_28-x64","_2_28-aarch64"]'
+      manylinux-platforms: '["_2_28-x64","2014-x64","_2_28-aarch64"]'
     secrets:
       pypi_password: ${{ secrets.pypi_password }}
