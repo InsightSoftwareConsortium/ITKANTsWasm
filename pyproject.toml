@@ -41,8 +41,8 @@ dependencies = [
 ]
 
 [project.urls]
-Download = "https://github.com/thewtex/ANTsWasm"
-Homepage = "https://github.com/thewtex/ANTsWasm"
+Download = "https://github.com/InsightSoftwareConsortium/ITKANTsWasm"
+Homepage = "https://github.com/InsightSoftwareConsortium/ITKANTsWasm"
 
 [tool.scikit-build]
 # The versions of CMake to allow. If CMake is not present on the system or does
