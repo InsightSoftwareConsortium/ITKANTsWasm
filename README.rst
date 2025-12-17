@@ -1,8 +1,8 @@
 ITKANTsWasm
 =================================
 
-.. image:: https://github.com/thewtex/ANTsWasm/actions/workflows/build-test-package.yml/badge.svg
-    :target: https://github.com/thewtex/ANTsWasm/actions/workflows/build-test-package.yml
+.. image:: https://github.com/InsightSoftwareConsortium/ITKANTsWasm/actions/workflows/build-test-package.yml/badge.svg
+    :target: https://github.com/InsightSoftwareConsortium/ITKANTsWasm/actions/workflows/build-test-package.yml
     :alt: Build Status
 
 .. image:: https://img.shields.io/pypi/v/itk-ants.svg
@@ -10,7 +10,7 @@ ITKANTsWasm
     :alt: PyPI Version
 
 .. image:: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-    :target: https://github.com/thewtex/ANTsWasm/blob/main/LICENSE
+    :target: https://github.com/InsightSoftwareConsortium/ITKANTsWasm/blob/main/LICENSE
     :alt: License
 
 Overview

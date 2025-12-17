@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "itk-ants"
-version = "0.8.1"
+version = "0.8.2"
 description = "Advanced Normalization Tools in WebAssembly"
 readme = "README.rst"
 license = {file = "LICENSE"}
@@ -35,14 +35,14 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
     "Topic :: Software Development :: Libraries",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "itk == 5.4.*"
 ]
 
 [project.urls]
-Download = "https://github.com/thewtex/ANTsWasm"
-Homepage = "https://github.com/thewtex/ANTsWasm"
+Download = "https://github.com/InsightSoftwareConsortium/ITKANTsWasm"
+Homepage = "https://github.com/InsightSoftwareConsortium/ITKANTsWasm"
 
 [tool.scikit-build]
 # The versions of CMake to allow. If CMake is not present on the system or does
